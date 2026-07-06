@@ -1,6 +1,6 @@
 node_modules/
 dist/
-screenshots/
+/screenshots/
 *.local
 .DS_Store
 *.log

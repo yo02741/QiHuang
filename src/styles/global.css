@@ -64,8 +64,8 @@ body {
   justify-content: center;
   gap: 10px;
   text-align: center;
+  /* 不用 backdrop-filter：軟體合成（無頭環境）移除全螢幕 backdrop 層時會長時間黑幀 */
   background: radial-gradient(ellipse at 50% 42%, rgba(11, 14, 18, 0.25), rgba(11, 14, 18, 0.78) 72%);
-  backdrop-filter: blur(2px);
   transition: opacity 0.9s var(--ease-out);
 }
 .qh-intro.is-leaving {
