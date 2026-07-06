@@ -75,6 +75,15 @@ try {
   await page.screenshot({ path: `${SHOT_DIR}01-stage.png` })
   console.log('✓ 01-stage.png')
 
+  // 銅人四方位截圖（美術迭代迴圈用）
+  for (const az of [0, 90, 180, 270]) {
+    await page.goto(`${BASE}/?az=${az}`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
+    await page.waitForTimeout(600)
+    await page.screenshot({ path: `${SHOT_DIR}02-body-az${az}.png` })
+    console.log(`✓ 02-body-az${az}.png`)
+  }
+
   // ---- 後續里程碑會在此擴充：進入 → 選經絡 → 選穴 → 透視 → 復位 ----
 
   if (errors.length) {
