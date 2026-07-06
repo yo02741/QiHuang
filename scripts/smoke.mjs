@@ -72,20 +72,28 @@ try {
   await page.goto(BASE, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await page.waitForTimeout(800)
-  await page.screenshot({ path: `${SHOT_DIR}01-stage.png` })
-  console.log('✓ 01-stage.png')
+  await page.screenshot({ path: `${SHOT_DIR}01-intro.png` })
+  console.log('✓ 01-intro.png')
+
+  // 進入：點真實按鈕 → 等 phase=explore（鏡頭飛入完成）
+  await page.getByRole('button', { name: '進入' }).click()
+  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 15000 })
+  await page.waitForTimeout(800)
+  await page.screenshot({ path: `${SHOT_DIR}02-explore.png` })
+  console.log('✓ 02-explore.png')
 
   // 銅人四方位截圖（美術迭代迴圈用）
   for (const az of [0, 90, 180, 270]) {
     await page.goto(`${BASE}/?az=${az}`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
     await page.waitForTimeout(600)
-    await page.screenshot({ path: `${SHOT_DIR}02-body-az${az}.png` })
-    console.log(`✓ 02-body-az${az}.png`)
+    await page.screenshot({ path: `${SHOT_DIR}body-az${az}.png` })
+    console.log(`✓ body-az${az}.png`)
   }
 
   // 選經絡 / 選穴（以 store 驅動，避免脆弱的 3D 座標點擊）
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  // ?az=20 會跳過開場直接進 explore
+  await page.goto(`${BASE}/?az=20`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
   await page.waitForTimeout(900)
@@ -93,11 +101,17 @@ try {
   console.log('✓ 03-meridian-lu.png')
 
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('LI4', 'LI'))
-  await page.waitForTimeout(1800)
+  await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
   await page.screenshot({ path: `${SHOT_DIR}04-point-xray.png` })
   console.log('✓ 04-point-xray.png')
 
-  // ---- 後續里程碑會在此擴充：進入 → 面板斷言 → 復位 ----
+  // Esc 復位
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(1600)
+  await page.screenshot({ path: `${SHOT_DIR}05-reset.png` })
+  console.log('✓ 05-reset.png')
+
+  // ---- 後續里程碑會在此擴充：面板文字斷言、行動視口 ----
 
   if (errors.length) {
     console.error(`✗ 偵測到 ${errors.length} 筆 console/page 錯誤：`)

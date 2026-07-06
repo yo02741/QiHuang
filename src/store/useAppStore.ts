@@ -7,6 +7,7 @@ interface AppState {
   phase: Phase
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
   selectedPointId: string | null        // 有值 ⇒ 透視模式
+  selectedSide: 'L' | 'R'               // 鏡頭聚焦在被點選的那一側
   hoveredPointId: string | null
   hoveredSide: 'L' | 'R'                // tooltip 顯示在被 hover 的那一側
   xray: boolean
@@ -15,18 +16,22 @@ interface AppState {
     enter(): void
     enterDone(): void
     selectMeridian(id: MeridianId | null): void
-    selectPoint(id: string | null, meridianId?: MeridianId): void
+    selectPoint(id: string | null, meridianId?: MeridianId, side?: 'L' | 'R'): void
     hoverPoint(id: string | null, side?: 'L' | 'R'): void
     reset(): void
   }
 }
 
-const debug = new URLSearchParams(window.location.search).has('debug')
+const params = new URLSearchParams(window.location.search)
+const debug = params.has('debug')
+// ?az / ?debug（smoke 截圖與調校）直接跳過開場
+const skipIntro = debug || params.has('az')
 
 export const useAppStore = create<AppState>()((set) => ({
-  phase: 'intro',
+  phase: skipIntro ? 'explore' : 'intro',
   selectedMeridianId: null,
   selectedPointId: null,
+  selectedSide: 'L',
   hoveredPointId: null,
   hoveredSide: 'L',
   xray: false,
@@ -36,9 +41,10 @@ export const useAppStore = create<AppState>()((set) => ({
     enterDone: () => set({ phase: 'explore' }),
     selectMeridian: (id) =>
       set({ selectedMeridianId: id, selectedPointId: null, xray: false }),
-    selectPoint: (id, meridianId) =>
+    selectPoint: (id, meridianId, side = 'L') =>
       set((s) => ({
         selectedPointId: id,
+        selectedSide: side,
         xray: id !== null,
         selectedMeridianId: id !== null ? (meridianId ?? s.selectedMeridianId) : s.selectedMeridianId,
         hoveredPointId: null,
