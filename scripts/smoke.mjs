@@ -118,7 +118,31 @@ try {
   await page.screenshot({ path: `${SHOT_DIR}05-reset.png` })
   console.log('✓ 05-reset.png')
 
-  // ---- 後續里程碑會在此擴充：面板文字斷言、行動視口 ----
+  // ── 行動視口（390×844）── chip bar / 底部抽屜
+  // 先關桌機分頁：SwiftShader 下兩個 WebGL context 併行會互相餓死
+  await page.close()
+  const mobile = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+  })
+  mobile.on('pageerror', (e) => errors.push(`mobile pageerror: ${e.message}`))
+  mobile.on('console', (m) => {
+    if (m.type() === 'error') errors.push(`mobile console.error: ${m.text()}`)
+  })
+  await mobile.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await mobile.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
+  await mobile.getByRole('button', { name: '進入' }).click()
+  await mobile.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
+  await mobile.waitForTimeout(2800)
+  await mobile.screenshot({ path: `${SHOT_DIR}06-mobile-explore.png` })
+  console.log('✓ 06-mobile-explore.png')
+
+  await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
+  await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
+  await mobile.waitForTimeout(2200)
+  await mobile.screenshot({ path: `${SHOT_DIR}07-mobile-panel.png` })
+  console.log('✓ 07-mobile-panel.png（抽屜含 足三里）')
+  await mobile.close()
 
   if (errors.length) {
     console.error(`✗ 偵測到 ${errors.length} 筆 console/page 錯誤：`)
