@@ -100,10 +100,13 @@ try {
   await page.screenshot({ path: `${SHOT_DIR}03-meridian-lu.png` })
   console.log('✓ 03-meridian-lu.png')
 
-  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('LI4', 'LI'))
+  // 選 PC6 內關：面板應顯示穴名/代碼，身體透視、心包區發光
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
+  await page.getByText('內關').first().waitFor({ timeout: 5000 })
+  await page.getByText('PC6').first().waitFor({ timeout: 5000 })
   await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
   await page.screenshot({ path: `${SHOT_DIR}04-point-xray.png` })
-  console.log('✓ 04-point-xray.png')
+  console.log('✓ 04-point-xray.png（面板含 內關/PC6）')
 
   // Esc 復位
   await page.keyboard.press('Escape')

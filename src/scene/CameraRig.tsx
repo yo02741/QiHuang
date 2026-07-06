@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
+import { Vector3 } from 'three'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { resolveAnchor } from '@/lib/anchors'
@@ -95,8 +96,16 @@ export function CameraRig() {
           const point = ACUPOINT_MAP.get(s.selectedPointId)
           if (!point) return
           const { position: p, normal } = resolveAnchor(point.anchor, s.selectedSide)
-          const cam = p.clone().addScaledVector(normal, 1.05)
-          cam.y += 0.12
+          // 鏡頭方向：anchor 法線（內側穴位會指向軀幹）混合「離身體中軸的
+          // 水平徑向」，確保鏡頭一定落在身體外側
+          const radial = new Vector3(p.x, 0, p.z)
+          if (radial.lengthSq() < 0.02 * 0.02) radial.set(0, 0, 1)
+          radial.normalize()
+          const dir = radial.multiplyScalar(0.85).addScaledVector(normal, 0.55)
+          dir.z += 0.2 // 微偏正面
+          dir.normalize()
+          const cam = p.clone().addScaledVector(dir, 1.15)
+          cam.y = Math.max(cam.y + 0.12, 0.3) // 不潛入臺座下方
           void controls.setLookAt(cam.x, cam.y, cam.z, p.x, p.y, p.z, true).then(() => {
             if (token !== transitionToken.current) return
           })

@@ -131,6 +131,286 @@ body {
   cursor: default;
 }
 
+/* ===== Header / Footer ===== */
+.qh-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 18px 26px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: all 0.8s var(--ease-out);
+  pointer-events: none;
+}
+.qh-header.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.qh-header-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.qh-header-logo {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+.qh-header-sub {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim);
+}
+
+.qh-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 26px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink-dim);
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-out);
+  pointer-events: none;
+}
+.qh-footer.is-visible {
+  opacity: 0.85;
+}
+
+/* ===== 經絡列表 ===== */
+.qh-meridians {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-10px);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 76vh;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: all 0.8s var(--ease-out) 0.15s;
+  scrollbar-width: thin;
+}
+.qh-meridians.is-visible {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+.qh-meridian-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 12px 6px 9px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.qh-meridian-btn:hover {
+  background: rgba(227, 179, 65, 0.08);
+}
+.qh-meridian-btn.is-active {
+  background: rgba(227, 179, 65, 0.12);
+  border-color: var(--panel-line);
+}
+.qh-meridian-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: 0 0 6px currentColor;
+}
+.qh-meridian-name {
+  flex: 1;
+  text-align: left;
+}
+.qh-meridian-element {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+/* ===== 詳情面板 ===== */
+.qh-panel {
+  position: absolute;
+  top: 76px;
+  right: 22px;
+  bottom: 56px;
+  width: min(330px, calc(100vw - 44px));
+  padding: 22px 22px 18px;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  animation: qh-slide-in 0.45s var(--ease-out);
+  scrollbar-width: thin;
+}
+@keyframes qh-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+.qh-panel-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-dim);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.qh-panel-close:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+}
+.qh-panel-head {
+  margin-bottom: 4px;
+}
+.qh-panel-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--gold);
+}
+.qh-panel-title-sm {
+  font-size: 26px;
+}
+.qh-panel-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 2px 0 10px;
+}
+.qh-panel-pinyin {
+  font-size: 14px;
+  color: var(--ink);
+  font-style: italic;
+}
+.qh-panel-code {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+.qh-panel-meridian {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid;
+  border-radius: 99px;
+  cursor: pointer;
+}
+.qh-panel-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.qh-panel-section h3 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+}
+.qh-panel-section p {
+  margin: 0;
+  font-size: 13.5px;
+}
+.qh-panel-functions {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 13.5px;
+}
+.qh-panel-functions li {
+  margin: 3px 0;
+}
+.qh-panel-organs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.qh-organ-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(227, 179, 65, 0.08);
+  border: 1px solid var(--panel-line);
+  border-radius: 6px;
+}
+.qh-organ-chip b {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--gold);
+}
+.qh-organ-chip i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.qh-panel-dim {
+  color: var(--ink-dim);
+}
+.qh-panel-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.qh-point-btn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 11px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.qh-point-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.qh-point-btn b {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 14px;
+}
+.qh-point-btn i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--ink-dim);
+}
+
 /* ===== 穴位 tooltip ===== */
 .qh-tooltip {
   display: flex;

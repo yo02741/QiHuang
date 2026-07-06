@@ -2,6 +2,10 @@ import { useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Experience } from '@/scene/Experience'
 import { IntroOverlay } from '@/ui/IntroOverlay'
+import { Header } from '@/ui/Header'
+import { MeridianList } from '@/ui/MeridianList'
+import { PointPanel } from '@/ui/PointPanel'
+import { Footer } from '@/ui/Footer'
 import { useAppStore } from '@/store/useAppStore'
 
 export default function App() {
@@ -29,6 +33,10 @@ export default function App() {
         </Canvas>
       </div>
       <div className="qh-overlay">
+        <Header />
+        <MeridianList />
+        <PointPanel />
+        <Footer />
         <IntroOverlay />
       </div>
     </>
