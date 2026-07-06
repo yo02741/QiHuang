@@ -5,6 +5,9 @@ import { Stage } from './Stage'
 import { CameraRig } from './CameraRig'
 import { BronzeMan } from './bronze/BronzeMan'
 import { DebugHelpers } from './bronze/DebugHelpers'
+import { MeridianLines } from './meridians/MeridianLines'
+import { AcupointMarkers } from './points/AcupointMarkers'
+import { PointTooltip } from './points/PointTooltip'
 
 /** 首幀渲染後在 <body> 打標記，供無頭 smoke test 判斷 WebGL 已就緒 */
 function ReadyFlag() {
@@ -30,6 +33,9 @@ export function Experience() {
       <Stage />
       <CameraRig />
       <BronzeMan />
+      <MeridianLines />
+      <AcupointMarkers />
+      <PointTooltip />
       <DebugHelpers />
       <ReadyFlag />
       <PhaseFlag />

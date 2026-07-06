@@ -8,6 +8,7 @@ interface AppState {
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
   selectedPointId: string | null        // 有值 ⇒ 透視模式
   hoveredPointId: string | null
+  hoveredSide: 'L' | 'R'                // tooltip 顯示在被 hover 的那一側
   xray: boolean
   debug: boolean
   actions: {
@@ -15,7 +16,7 @@ interface AppState {
     enterDone(): void
     selectMeridian(id: MeridianId | null): void
     selectPoint(id: string | null, meridianId?: MeridianId): void
-    hoverPoint(id: string | null): void
+    hoverPoint(id: string | null, side?: 'L' | 'R'): void
     reset(): void
   }
 }
@@ -27,6 +28,7 @@ export const useAppStore = create<AppState>()((set) => ({
   selectedMeridianId: null,
   selectedPointId: null,
   hoveredPointId: null,
+  hoveredSide: 'L',
   xray: false,
   debug,
   actions: {
@@ -41,7 +43,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedMeridianId: id !== null ? (meridianId ?? s.selectedMeridianId) : s.selectedMeridianId,
         hoveredPointId: null,
       })),
-    hoverPoint: (id) => set({ hoveredPointId: id }),
+    hoverPoint: (id, side = 'L') => set({ hoveredPointId: id, hoveredSide: side }),
     reset: () => set({ selectedPointId: null, xray: false, selectedMeridianId: null }),
   },
 }))

@@ -53,3 +53,26 @@ body {
 .qh-overlay > * {
   pointer-events: auto;
 }
+
+/* ===== 穴位 tooltip ===== */
+.qh-tooltip {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 4px;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+.qh-tooltip-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--gold);
+}
+.qh-tooltip-code {
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.5px;
+}

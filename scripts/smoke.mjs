@@ -84,7 +84,20 @@ try {
     console.log(`✓ 02-body-az${az}.png`)
   }
 
-  // ---- 後續里程碑會在此擴充：進入 → 選經絡 → 選穴 → 透視 → 復位 ----
+  // 選經絡 / 選穴（以 store 驅動，避免脆弱的 3D 座標點擊）
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
+  await page.waitForTimeout(900)
+  await page.screenshot({ path: `${SHOT_DIR}03-meridian-lu.png` })
+  console.log('✓ 03-meridian-lu.png')
+
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('LI4', 'LI'))
+  await page.waitForTimeout(1800)
+  await page.screenshot({ path: `${SHOT_DIR}04-point-xray.png` })
+  console.log('✓ 04-point-xray.png')
+
+  // ---- 後續里程碑會在此擴充：進入 → 面板斷言 → 復位 ----
 
   if (errors.length) {
     console.error(`✗ 偵測到 ${errors.length} 筆 console/page 錯誤：`)
