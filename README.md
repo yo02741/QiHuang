@@ -64,10 +64,14 @@ npm run smoke          # 無頭瀏覽器視覺驗證（先 build；截圖存 scr
 - 不要另行安裝 `postprocessing`——由 `@react-three/postprocessing` 自帶，避免重複副本
 - 禁用 drei `<Environment preset>`（runtime 抓 CDN HDRI）；本案用 `<Lightformer>` 程序化環境光
 
-## 手動部署
+## 部署
 
-`npm run build` 後將 `dist/` 上傳任一靜態主機即可（`base` 已設為相對路徑，可放任意子路徑）。
-GitHub Pages 快速部署：`npx gh-pages -d dist`。
+**GitHub Pages（自動）**：`.github/workflows/deploy.yml` 會在 push 時自動 build 並部署到
+GitHub Pages（首次執行會自動啟用 Pages）。需在 repo 的 **Settings → Pages → Build and deployment
+→ Source** 設為 **GitHub Actions**（workflow 首跑時 `configure-pages` 也會嘗試自動設定）。
+網址：`https://yo02741.github.io/QiHuang/`。
+
+**手動**：`npm run build` 後將 `dist/` 上傳任一靜態主機即可（`base` 已設為相對路徑，可放任意子路徑）。
 
 ## 資料說明與免責聲明
 
