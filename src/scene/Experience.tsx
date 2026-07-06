@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useAppStore } from '@/store/useAppStore'
 import { Stage } from './Stage'
+import { Effects } from './Effects'
 import { CameraRig } from './CameraRig'
 import { BronzeMan } from './bronze/BronzeMan'
 import { DebugHelpers } from './bronze/DebugHelpers'
@@ -38,6 +39,7 @@ export function Experience() {
       <MeridianLines />
       <AcupointMarkers />
       <PointTooltip />
+      <Effects />
       <DebugHelpers />
       <ReadyFlag />
       <PhaseFlag />

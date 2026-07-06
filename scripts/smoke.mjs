@@ -60,9 +60,10 @@ try {
     ],
   })
 
+  // deviceScaleFactor 1：SwiftShader 軟體算圖下 bloom 很吃像素量
   const page = await browser.newPage({
     viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2,
+    deviceScaleFactor: 1,
   })
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   page.on('console', (m) => {
@@ -77,24 +78,27 @@ try {
 
   // 進入：點真實按鈕 → 等 phase=explore（鏡頭飛入完成）
   await page.getByRole('button', { name: '進入' }).click()
-  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 15000 })
-  await page.waitForTimeout(800)
+  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
+  await page.waitForTimeout(2800) // 經絡線交錯淡入完成
   await page.screenshot({ path: `${SHOT_DIR}02-explore.png` })
   console.log('✓ 02-explore.png')
 
   // 銅人四方位截圖（美術迭代迴圈用）
   for (const az of [0, 90, 180, 270]) {
     await page.goto(`${BASE}/?az=${az}`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
-    await page.waitForTimeout(600)
+    await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
+    await page.waitForTimeout(3000) // SwiftShader 首次合成（含 shader 編譯）需時
     await page.screenshot({ path: `${SHOT_DIR}body-az${az}.png` })
     console.log(`✓ body-az${az}.png`)
   }
 
   // 選經絡 / 選穴（以 store 驅動，避免脆弱的 3D 座標點擊）
-  // ?az=20 會跳過開場直接進 explore
-  await page.goto(`${BASE}/?az=20`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 15000 })
+  // 沿用已進入的頁面，避免重載後 SwiftShader 重新編譯 shader 的黑幀
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
+  await page.getByRole('button', { name: '進入' }).click()
+  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
+  await page.waitForTimeout(2800)
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
   await page.waitForTimeout(900)
   await page.screenshot({ path: `${SHOT_DIR}03-meridian-lu.png` })
@@ -125,6 +129,10 @@ try {
   }
 } catch (err) {
   console.error('✗ smoke 失敗：', err)
+  if (errors.length) {
+    console.error(`（另收集到 ${errors.length} 筆 console/page 錯誤）`)
+    for (const e of errors) console.error('  ' + e)
+  }
   process.exitCode = 1
 } finally {
   if (browser) await browser.close()

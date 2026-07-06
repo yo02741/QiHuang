@@ -1,5 +1,50 @@
-import { ContactShadows, Environment, Lightformer } from '@react-three/drei'
+import { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { ContactShadows, Environment, Lightformer, Sparkles } from '@react-three/drei'
+import { AdditiveBlending, CanvasTexture, type Mesh } from 'three'
 import { COLORS, RENDER_ORDER } from '@/lib/constants'
+
+/** 背景墨霧：canvas 放射漸層貼圖的大平面，緩慢旋轉 */
+function InkWisp({
+  position,
+  scale,
+  speed,
+}: {
+  position: [number, number, number]
+  scale: number
+  speed: number
+}) {
+  const ref = useRef<Mesh>(null)
+  const texture = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = c.height = 256
+    const ctx = c.getContext('2d')!
+    const g = ctx.createRadialGradient(128, 128, 12, 128, 128, 128)
+    g.addColorStop(0, 'rgba(227, 179, 65, 0.55)')
+    g.addColorStop(0.45, 'rgba(160, 120, 50, 0.16)')
+    g.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 256, 256)
+    return new CanvasTexture(c)
+  }, [])
+
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.z += speed * delta
+  })
+
+  return (
+    <mesh ref={ref} position={position} scale={scale} renderOrder={RENDER_ORDER.stage}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        opacity={0.05}
+        depthWrite={false}
+        blending={AdditiveBlending}
+      />
+    </mesh>
+  )
+}
 
 /**
  * 舞台：燈光、程序化環境反射（不用 Environment preset — 那會在
@@ -34,6 +79,19 @@ export function Stage() {
           scale={[2, 3, 1]}
         />
       </Environment>
+
+      {/* 金塵與墨霧氛圍 */}
+      <Sparkles
+        count={140}
+        scale={[2.6, 2.2, 1.6]}
+        position={[0, 1.1, 0]}
+        size={2}
+        speed={0.25}
+        opacity={0.35}
+        color="#E8C87A"
+      />
+      <InkWisp position={[-1.4, 1.5, -1.8]} scale={3.2} speed={0.02} />
+      <InkWisp position={[1.5, 0.7, -2.2]} scale={4.0} speed={-0.014} />
 
       <ContactShadows
         position={[0, 0.002, 0]}
