@@ -1,0 +1,103 @@
+import type { Organ } from './types'
+
+/** 五臟六腑＋心包（三焦以抽象三區呈現）。description 為簡明生理功能。 */
+export const ORGANS: Organ[] = [
+  {
+    id: 'lung',
+    name: '肺',
+    type: 'zang',
+    element: 'metal',
+    pairedWith: 'largeIntestine',
+    description: '主氣、司呼吸，主宣發肅降，通調水道；開竅於鼻，其華在毛。',
+  },
+  {
+    id: 'largeIntestine',
+    name: '大腸',
+    type: 'fu',
+    element: 'metal',
+    pairedWith: 'lung',
+    description: '主傳化糟粕，吸收水分；與肺相表裡。',
+  },
+  {
+    id: 'stomach',
+    name: '胃',
+    type: 'fu',
+    element: 'earth',
+    pairedWith: 'spleen',
+    description: '主受納、腐熟水穀，為「水穀之海」；以降為和。',
+  },
+  {
+    id: 'spleen',
+    name: '脾',
+    type: 'zang',
+    element: 'earth',
+    pairedWith: 'stomach',
+    description: '主運化、統血、主升清；為氣血生化之源，開竅於口。',
+  },
+  {
+    id: 'heart',
+    name: '心',
+    type: 'zang',
+    element: 'fire',
+    pairedWith: 'smallIntestine',
+    description: '主血脈、藏神；為「君主之官」，開竅於舌。',
+  },
+  {
+    id: 'smallIntestine',
+    name: '小腸',
+    type: 'fu',
+    element: 'fire',
+    pairedWith: 'heart',
+    description: '主受盛化物、泌別清濁；與心相表裡。',
+  },
+  {
+    id: 'bladder',
+    name: '膀胱',
+    type: 'fu',
+    element: 'water',
+    pairedWith: 'kidney',
+    description: '貯存與排泄尿液，氣化功能有賴腎陽。',
+  },
+  {
+    id: 'kidney',
+    name: '腎',
+    type: 'zang',
+    element: 'water',
+    pairedWith: 'bladder',
+    description: '藏精、主水、主納氣；主骨生髓，為「先天之本」。',
+  },
+  {
+    id: 'pericardium',
+    name: '心包',
+    type: 'zang',
+    element: 'fire',
+    pairedWith: 'sanjiao',
+    description: '心之外衛，代心受邪；臨床心胸病症多取心包經。',
+  },
+  {
+    id: 'sanjiao',
+    name: '三焦',
+    type: 'fu',
+    element: 'fire',
+    pairedWith: 'pericardium',
+    description: '上、中、下三焦統稱：通行元氣、運行水液的通道，「孤府」無形而有用。',
+  },
+  {
+    id: 'liver',
+    name: '肝',
+    type: 'zang',
+    element: 'wood',
+    pairedWith: 'gallbladder',
+    description: '主疏泄、藏血；調暢氣機與情志，開竅於目，其華在爪。',
+  },
+  {
+    id: 'gallbladder',
+    name: '膽',
+    type: 'fu',
+    element: 'wood',
+    pairedWith: 'liver',
+    description: '貯藏排泄膽汁、主決斷；「中正之官」。',
+  },
+]
+
+export const ORGAN_MAP = new Map(ORGANS.map((o) => [o.id, o]))
