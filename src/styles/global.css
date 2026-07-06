@@ -1,0 +1,55 @@
+/* ===== Design tokens ===== */
+:root {
+  --bg: #0b0e12;
+  --ink: #e8e3d5;
+  --ink-dim: #9b9484;
+  --gold: #e3b341;
+  --gold-soft: #d9b36c;
+  --panel-bg: rgba(14, 17, 23, 0.86);
+  --panel-line: rgba(227, 179, 65, 0.28);
+  --font-display: 'Noto Serif TC', 'PMingLiU', serif;
+  --font-body: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===== Base ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 全螢幕 3D 畫布 */
+.qh-canvas {
+  position: fixed;
+  inset: 0;
+  touch-action: none;
+}
+
+/* DOM overlay 共同層：本身不擋事件，子元素各自開啟 */
+.qh-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.qh-overlay > * {
+  pointer-events: auto;
+}
