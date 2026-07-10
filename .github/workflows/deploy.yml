@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
@@ -42,12 +42,20 @@ jobs:
         with:
           enablement: true
 
-      - name: Upload artifact
+      # 供 GitHub Pages 部署使用（特殊 tar 格式）
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
-  deploy:
+      # 供 Firebase 部署使用（一般 artifact，避免重複 build）
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ./dist
+
+  deploy-pages:
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -57,3 +65,24 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  deploy-firebase:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ github.token }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QIHUANG }}
+          channelId: live
+          projectId: qihuang-25691
