@@ -47,6 +47,9 @@ export function PointPanel() {
   const { selectPoint, selectMeridian, selectSymptom, selectCombo } = useAppStore(
     (s) => s.actions,
   )
+  // 手機底部迷你卡：預設收合（矮卡不擋小金人），點卡展開全文。
+  // 桌機無視此狀態（collapsed 樣式只存在於 mobile media query）
+  const [expanded, setExpanded] = useState(false)
 
   // 導覽 spotlight：story 模式未選穴時，面板跟著點亮進度走
   const tour = mode === 'story' && !selectedPointId && Boolean(spotlightPointId)
@@ -73,7 +76,26 @@ export function PointPanel() {
   }
 
   return (
-    <aside className={`qh-panel ${tour ? 'qh-panel--tour' : ''}`} aria-live="polite">
+    <aside
+      className={`qh-panel ${tour ? 'qh-panel--tour' : ''} ${expanded ? 'is-expanded' : 'is-collapsed'}`}
+      aria-live="polite"
+      onClick={() => {
+        // 收合態（手機迷你卡）點卡片任意處展開
+        if (!expanded) setExpanded(true)
+      }}
+    >
+      {/* 手機展開後的收合鈕（桌機 CSS 隱藏） */}
+      <button
+        type="button"
+        className="qh-panel-collapse"
+        aria-label="收合"
+        onClick={(e) => {
+          e.stopPropagation()
+          setExpanded(false)
+        }}
+      >
+        ▾ 收合
+      </button>
       {!tour && (
         <button type="button" className="qh-panel-close" aria-label="關閉" onClick={close}>
           ×

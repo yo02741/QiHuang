@@ -91,9 +91,20 @@ export function StorySections() {
           key={s.id}
           id={`sec-${s.id}`}
           className={`qh-section qh-section--${s.id}`}
-          style={{ minHeight: `${sectionHeightVh(s)}vh` }}
+          // --qh-svh：桌機 1vh、手機 1.4vh（拉長滾動距離讓點亮節奏放慢）；
+          // landing / finale 不乘（無點亮節奏需求）
+          style={{
+            minHeight:
+              s.pointIds.length > 0
+                ? `calc(${sectionHeightVh(s)} * var(--qh-svh, 1vh))`
+                : `${sectionHeightVh(s)}vh`,
+          }}
         >
-          <div className="qh-section-card">
+          <div
+            className="qh-section-card"
+            // 手機頂部精簡條：文案兩行截斷，點卡片展開/收合（桌機全文常駐無感）
+            onClick={(e) => e.currentTarget.classList.toggle('is-expanded')}
+          >
             <p className="qh-section-kicker">{s.kicker}</p>
             {s.id === 'landing' ? (
               <h1 className="qh-section-title qh-section-title--landing">{s.title}</h1>

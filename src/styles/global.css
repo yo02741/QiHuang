@@ -10,6 +10,8 @@
   --font-display: 'Noto Serif TC', 'PMingLiU', serif;
   --font-body: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* 部位章高度單位：手機放大讓滾動節奏變慢（見 media 區塊） */
+  --qh-svh: 1vh;
 }
 
 /* ===== Base ===== */
@@ -470,6 +472,10 @@ html {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.06);
 }
+/* 手機迷你卡的收合鈕（桌機恆隱藏；手機展開時顯示，見 media 區塊） */
+.qh-panel-collapse {
+  display: none;
+}
 .qh-panel-head {
   margin-bottom: 4px;
 }
@@ -642,14 +648,50 @@ html {
 
 /* ===== 行動裝置（<768px）===== */
 @media (max-width: 768px) {
-  /* 文案卡下沉到畫面下緣（銅人讓出上半屏），漸層保可讀性 */
+  /* 部位章滾動距離拉長 1.4 倍（點亮節奏放慢，一次慣性滑動約前進 1–2 穴） */
+  :root {
+    --qh-svh: 1.4vh;
+  }
+
+  /* 章節文字 → 頂部精簡條（羅盤下方）：章名一行、文案兩行截斷，點卡展開 */
   .qh-section {
-    padding: 58vh 22px 8vh;
+    padding: 100px 12px 8vh;
   }
   .qh-section-card {
-    top: 52vh;
+    top: 96px;
+    max-width: none;
+    padding: 9px 14px 8px;
+    background: rgba(14, 17, 23, 0.72);
+    border: 1px solid rgba(227, 179, 65, 0.14);
+    border-radius: 10px;
   }
-  /* 手機 landing：銅人上半屏、文字佔首屏下半（上下分離不交疊） */
+  .qh-section-kicker {
+    display: inline-block;
+    margin: 0 10px 0 0;
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+  }
+  .qh-section-title {
+    display: inline;
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: 0.08em;
+  }
+  .qh-section-body {
+    margin-top: 3px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: none;
+  }
+  .qh-section-card.is-expanded .qh-section-body {
+    -webkit-line-clamp: unset;
+  }
+
+  /* 手機 landing：銅人上半屏、文字佔首屏下半（維持置中大標，非頂部條） */
   .qh-section--landing {
     align-items: flex-start;
     padding: 48vh 22px 0;
@@ -657,24 +699,37 @@ html {
   }
   .qh-section--landing .qh-section-card {
     margin: 0 auto;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+  .qh-section--landing .qh-section-kicker {
+    display: block;
+    margin: 0 0 6px;
+  }
+  .qh-section--landing .qh-section-title--landing {
+    display: block;
+    font-size: clamp(56px, 18vw, 84px);
+  }
+  .qh-section--landing .qh-section-body,
+  .qh-section--finale .qh-section-body {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
   }
   .qh-section--landing .qh-scroll-hint {
     align-items: center;
   }
-  .qh-section--landing .qh-section-title--landing {
-    font-size: clamp(56px, 18vw, 84px);
+  /* finale：置中卡（有按鈕、無點亮節奏） */
+  .qh-section--finale .qh-section-card {
+    padding: 14px 16px;
   }
-  .qh-section-card {
-    max-width: none;
-    padding: 18px 4px 0;
-    background: linear-gradient(to top, rgba(11, 14, 18, 0.82) 55%, rgba(11, 14, 18, 0));
+  .qh-section--finale .qh-section-kicker,
+  .qh-section--finale .qh-section-title {
+    display: block;
+    margin: 0 0 6px;
   }
-  .qh-section-title {
-    font-size: 30px;
-  }
-  .qh-section-body {
-    font-size: 13.5px;
-  }
+
   .qh-point-label-name {
     font-size: 12px;
   }
@@ -721,22 +776,53 @@ html {
     display: none;
   }
 
-  /* 導覽 spotlight 面板僅桌機顯示（手機下緣已有文案卡） */
-  .qh-panel--tour {
-    display: none;
-  }
-
-
-  /* 詳情面板 → 底部抽屜（底邊讓開下拉選單列，不重疊） */
+  /* 詳情面板 → 底部迷你卡（預設收合不擋小金人，點卡展開；tour 同樣顯示） */
   .qh-panel {
     top: auto;
     left: 10px;
     right: 10px;
     bottom: 96px;
     width: auto;
-    max-height: 42vh;
+    max-height: 60vh;
     padding: 18px 16px 14px;
     animation: qh-slide-up 0.4s var(--ease-out);
+  }
+  .qh-panel.is-collapsed {
+    max-height: 164px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .qh-panel.is-collapsed::after {
+    content: '⌃ 點一下展開';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 30px 0 7px;
+    text-align: center;
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    color: var(--ink-dim);
+    background: linear-gradient(to top, rgba(14, 17, 23, 0.97) 45%, rgba(14, 17, 23, 0));
+    pointer-events: none;
+  }
+  /* 收合時不顯示 ×（點卡是展開），展開後顯示收合鈕 */
+  .qh-panel.is-collapsed .qh-panel-close {
+    display: none;
+  }
+  .qh-panel.is-expanded .qh-panel-collapse {
+    display: block;
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 16px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ink-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
   }
   .qh-panel::before {
     /* 抽屜視覺把手 */

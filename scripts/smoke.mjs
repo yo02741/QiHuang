@@ -284,16 +284,30 @@ try {
   console.log('✓ 07-mobile-landing.png')
 
   await scrollToSection(mobile, 'face-front', 1)
+  // 手機導覽：頂部章節條 + 底部 tour 迷你卡（收合）同框
+  await mobile.waitForSelector('.qh-panel--tour.is-collapsed', { timeout: 5000 })
   await shoot(mobile, `${SHOT_DIR}08-mobile-section.png`)
-  console.log('✓ 08-mobile-section.png')
+  console.log('✓ 08-mobile-section.png（頂部章節條 + tour 迷你卡）')
 
   await scrollToSection(mobile, 'lower-limb', 11)
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
   await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
+  await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })
   await mobile.waitForTimeout(2200)
   await settleFrames(mobile, 30)
   await shoot(mobile, `${SHOT_DIR}09-mobile-panel.png`)
-  console.log('✓ 09-mobile-panel.png（抽屜含 足三里）')
+  console.log('✓ 09-mobile-panel.png（迷你卡收合・足三里）')
+
+  // 點迷你卡 → 展開完整詳情（白話解全文可見）
+  await mobile.locator('.qh-panel').click()
+  await mobile.waitForSelector('.qh-panel.is-expanded', { timeout: 5000 })
+  await mobile.getByText('白話解').first().waitFor({ timeout: 5000 })
+  await mobile.waitForTimeout(600)
+  await shoot(mobile, `${SHOT_DIR}09b-mobile-expanded.png`)
+  console.log('✓ 09b-mobile-expanded.png（展開詳情・白話解）')
+  await mobile.locator('.qh-panel-collapse').click()
+  await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })
+  console.log('✓ 收合鈕恢復迷你卡')
 
   // 手機自由探索：探索 chip bar + 症狀反查 + 抽屜同框不重疊
   await mobile.evaluate(() => {
