@@ -4,6 +4,7 @@ import { useCursor } from '@react-three/drei'
 import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
 import { ACUPOINTS } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
+import { COMBOS } from '@/data/combos'
 import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 import { resolveAnchor, type Side } from '@/lib/anchors'
 import { useAppStore } from '@/store/useAppStore'
@@ -19,6 +20,17 @@ import type { MeridianId } from '@/data/types'
  * （經絡色 ×2.8 進 bloom），其餘章節暗化——重用既有 damp 動畫做出
  * 「一顆顆亮起」的節奏。點亮門檻公式與 SectionPointLabels 一致。
  */
+
+/** 症狀 / 配穴 → 對應穴位集合（free 模式點亮用，避免每幀重建） */
+const SYMPTOM_POINTS = new Map<string, Set<string>>()
+for (const p of ACUPOINTS) {
+  for (const s of p.symptoms) {
+    let set = SYMPTOM_POINTS.get(s)
+    if (!set) SYMPTOM_POINTS.set(s, (set = new Set()))
+    set.add(p.id)
+  }
+}
+const COMBO_POINTS = new Map(COMBOS.map((c) => [c.id, new Set(c.pointIds)]))
 
 /** pointId → 所屬章節與點亮門檻（lightThreshold 與標籤共用同一公式） */
 const SECTION_LIGHT = new Map<string, { section: number; threshold: number }>()
@@ -86,12 +98,20 @@ export function AcupointMarkers() {
     const mesh = visualRef.current
     const hit = hitRef.current
     if (!mesh || !hit) return
-    const { hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId, mode, sectionIndex, rawProgress, spotlightPointId } =
-      useAppStore.getState()
+    const {
+      hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId,
+      selectedSymptomId, selectedComboId, mode, sectionIndex, rawProgress, spotlightPointId,
+    } = useAppStore.getState()
 
     const k = 1 - Math.exp(-delta / 0.12) // 統一的 damp 係數
     const storyLight = mode === 'story' && selectedPointId === null
     const sectionProgress = rawProgress - sectionIndex
+    // free 模式的症狀 / 配穴點亮集合（互斥，最多一個有值）
+    const litSet = selectedSymptomId
+      ? SYMPTOM_POINTS.get(selectedSymptomId)
+      : selectedComboId
+        ? COMBO_POINTS.get(selectedComboId)
+        : null
 
     instances.forEach((inst, i) => {
       const isSelected = selectedPointId === inst.pointId
@@ -124,6 +144,15 @@ export function AcupointMarkers() {
         } else if (light?.section === sectionIndex) {
           targetScale = 1.0
           tmpC.copy(REST_GOLD).multiplyScalar(0.4)
+        } else {
+          targetScale = 0.7
+          tmpC.copy(REST_GOLD).multiplyScalar(0.15)
+        }
+      } else if (litSet) {
+        // 症狀反查 / 配穴組合：命中的穴位群點亮，其餘暗化
+        if (litSet.has(inst.pointId)) {
+          targetScale = 1.5
+          tmpC.multiplyScalar(2.8)
         } else {
           targetScale = 0.7
           tmpC.copy(REST_GOLD).multiplyScalar(0.15)

@@ -179,10 +179,13 @@ try {
   await page.waitForSelector('.qh-panel--tour', { timeout: 5000 })
   console.log('✓ 導覽 spotlight 面板連動出現')
 
-  // 章內選穴 focus：選 PC6 內關 → 面板 + 透視 + 臟腑標籤；再滾動應自動退出
+  // 章內選穴 focus：選 PC6 內關 → 面板（含白話解）+ 透視 + 臟腑標籤；再滾動應自動退出
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
   await page.getByText('內關').first().waitFor({ timeout: 5000 })
   await page.getByText('PC6').first().waitFor({ timeout: 5000 })
+  await page.getByText('白話解').first().waitFor({ timeout: 5000 })
+  await page.getByText('暈車').first().waitFor({ timeout: 5000 })
+  console.log('✓ 白話解區塊顯示（內關含「暈車」情境）')
   await page.locator('.qh-organ-label-name', { hasText: '心包' }).first().waitFor({ timeout: 5000 })
   console.log('✓ 臟腑名稱標籤浮現（心包）')
   await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
@@ -217,6 +220,29 @@ try {
   await page.waitForTimeout(1200)
   await settleFrames(page, 30)
 
+  // 症狀反查：選「頭痛」→ 面板列相關穴位、銅人點亮穴位群
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectSymptom('headache'))
+  await page.getByText('症狀反查・頭面').first().waitFor({ timeout: 5000 })
+  await page.getByText('風池').first().waitFor({ timeout: 5000 })
+  await page.waitForTimeout(900)
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}05-symptom-headache.png`)
+  console.log('✓ 05-symptom-headache.png（症狀反查・頭痛）')
+
+  // 配穴組合：選「四關」→ 面板顯示組合說明與成員
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectCombo('siguan'))
+  await page.getByText('四關').first().waitFor({ timeout: 5000 })
+  await page.getByText('為何搭配').first().waitFor({ timeout: 5000 })
+  await page.waitForTimeout(900)
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}06-combo-siguan.png`)
+  console.log('✓ 06-combo-siguan.png（配穴・四關）')
+
+  // 子午流注時辰鐘（free 模式常駐）
+  await page.waitForSelector('.qh-flowclock', { timeout: 5000 })
+  console.log('✓ 子午流注時辰鐘存在')
+  await page.keyboard.press('Escape') // 清配穴
+
   //「重看導覽」：free → 回到滾動敘事頂部
   await page.getByRole('button', { name: '重看導覽' }).click()
   await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })
@@ -231,6 +257,13 @@ try {
     await shoot(page, `${SHOT_DIR}body-az${az}.png`)
     console.log(`✓ body-az${az}.png`)
   }
+  // Deep link：?point=LI4 直達合谷（free 模式 + 面板 + 白話解）
+  await page.goto(`${BASE}/?point=LI4&shot`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
+  await page.waitForSelector('body[data-qh-mode="free"]', { timeout: 5000 })
+  await page.getByText('合谷').first().waitFor({ timeout: 10000 })
+  await page.getByText('面口合谷收').first().waitFor({ timeout: 5000 })
+  console.log('✓ Deep link ?point=LI4 直達合谷（含白話解）')
   await page.close()
 
   // ── 行動視口（390×844）── 底部文案卡 / 捲動 / 選穴抽屜
@@ -247,20 +280,20 @@ try {
   await mobile.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await mobile.waitForTimeout(2800)
   await settleFrames(mobile, 60)
-  await shoot(mobile, `${SHOT_DIR}05-mobile-landing.png`)
-  console.log('✓ 05-mobile-landing.png')
+  await shoot(mobile, `${SHOT_DIR}07-mobile-landing.png`)
+  console.log('✓ 07-mobile-landing.png')
 
   await scrollToSection(mobile, 'face-front', 1)
-  await shoot(mobile, `${SHOT_DIR}06-mobile-section.png`)
-  console.log('✓ 06-mobile-section.png')
+  await shoot(mobile, `${SHOT_DIR}08-mobile-section.png`)
+  console.log('✓ 08-mobile-section.png')
 
   await scrollToSection(mobile, 'lower-limb', 11)
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
   await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
   await mobile.waitForTimeout(2200)
   await settleFrames(mobile, 30)
-  await shoot(mobile, `${SHOT_DIR}07-mobile-panel.png`)
-  console.log('✓ 07-mobile-panel.png（抽屜含 足三里）')
+  await shoot(mobile, `${SHOT_DIR}09-mobile-panel.png`)
+  console.log('✓ 09-mobile-panel.png（抽屜含 足三里）')
   await mobile.close()
 
   if (errors.length) {

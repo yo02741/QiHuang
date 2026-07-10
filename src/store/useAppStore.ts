@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { MeridianId } from '@/data/types'
+import type { MeridianId, SymptomId } from '@/data/types'
 import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 
 export type Mode = 'story' | 'free'
@@ -28,6 +28,8 @@ interface AppState {
   /** 當前章最新點亮的穴位（導覽 spotlight）；選穴時面板以 selectedPointId 優先 */
   spotlightPointId: string | null
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
+  selectedSymptomId: SymptomId | null   // 症狀反查（free 模式；與經絡/配穴互斥）
+  selectedComboId: string | null        // 配穴組合（free 模式；與經絡/症狀互斥）
   selectedPointId: string | null        // 有值 ⇒ 透視模式 + 相機 focus
   selectedSide: 'L' | 'R'               // 鏡頭聚焦在被點選的那一側
   hoveredPointId: string | null
@@ -40,6 +42,8 @@ interface AppState {
     enterFree(): void
     enterStory(): void
     selectMeridian(id: MeridianId | null): void
+    selectSymptom(id: SymptomId | null): void
+    selectCombo(id: string | null): void
     selectPoint(id: string | null, meridianId?: MeridianId, side?: 'L' | 'R'): void
     hoverPoint(id: string | null, side?: 'L' | 'R'): void
     reset(): void
@@ -48,8 +52,8 @@ interface AppState {
 
 const params = new URLSearchParams(window.location.search)
 const debug = params.has('debug')
-// ?az / ?debug（smoke 截圖與調校）直接進自由探索，不走滾動敘事
-const skipStory = debug || params.has('az')
+// ?az / ?debug（smoke 截圖與調校）與 ?point=（深連結）直接進自由探索
+const skipStory = debug || params.has('az') || params.has('point')
 
 export const useAppStore = create<AppState>()((set) => ({
   mode: skipStory ? 'free' : 'story',
@@ -58,6 +62,8 @@ export const useAppStore = create<AppState>()((set) => ({
   scrollVelocity: 0,
   spotlightPointId: null,
   selectedMeridianId: null,
+  selectedSymptomId: null,
+  selectedComboId: null,
   selectedPointId: null,
   selectedSide: 'L',
   hoveredPointId: null,
@@ -76,9 +82,39 @@ export const useAppStore = create<AppState>()((set) => ({
       }),
     enterFree: () => set({ mode: 'free' }),
     enterStory: () =>
-      set({ mode: 'story', selectedPointId: null, selectedMeridianId: null, xray: false }),
+      set({
+        mode: 'story',
+        selectedPointId: null,
+        selectedMeridianId: null,
+        selectedSymptomId: null,
+        selectedComboId: null,
+        xray: false,
+      }),
+    // 經絡 / 症狀 / 配穴 三種瀏覽互斥（各自選取時清掉其他兩類與選穴）
     selectMeridian: (id) =>
-      set({ selectedMeridianId: id, selectedPointId: null, xray: false }),
+      set({
+        selectedMeridianId: id,
+        selectedSymptomId: null,
+        selectedComboId: null,
+        selectedPointId: null,
+        xray: false,
+      }),
+    selectSymptom: (id) =>
+      set({
+        selectedSymptomId: id,
+        selectedMeridianId: null,
+        selectedComboId: null,
+        selectedPointId: null,
+        xray: false,
+      }),
+    selectCombo: (id) =>
+      set({
+        selectedComboId: id,
+        selectedMeridianId: null,
+        selectedSymptomId: null,
+        selectedPointId: null,
+        xray: false,
+      }),
     selectPoint: (id, meridianId, side = 'L') =>
       set((s) => ({
         selectedPointId: id,
@@ -88,7 +124,14 @@ export const useAppStore = create<AppState>()((set) => ({
         hoveredPointId: null,
       })),
     hoverPoint: (id, side = 'L') => set({ hoveredPointId: id, hoveredSide: side }),
-    reset: () => set({ selectedPointId: null, xray: false, selectedMeridianId: null }),
+    reset: () =>
+      set({
+        selectedPointId: null,
+        xray: false,
+        selectedMeridianId: null,
+        selectedSymptomId: null,
+        selectedComboId: null,
+      }),
   },
 }))
 

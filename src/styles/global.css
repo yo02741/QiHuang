@@ -290,6 +290,43 @@ body {
   opacity: 1;
   transform: translateY(-50%);
 }
+
+/* 探索選單：三 tab（經絡/症狀/配穴） */
+.qh-explore-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 5px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.qh-explore-tab {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.qh-explore-tab:hover {
+  color: var(--ink);
+}
+.qh-explore-tab.is-active {
+  color: var(--gold);
+  background: rgba(227, 179, 65, 0.1);
+  border-color: var(--panel-line);
+}
+.qh-explore-group {
+  padding: 7px 9px 2px;
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  color: var(--ink-dim);
+}
+
 .qh-meridian-btn {
   display: flex;
   align-items: center;
@@ -466,6 +503,51 @@ body {
 .qh-panel-dim {
   color: var(--ink-dim);
 }
+/* 白話解段落：稍大行距、暖色，閱讀為主 */
+.qh-panel-plain {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ink);
+}
+/* 症狀 chips（點擊切到該症狀反查） */
+.qh-panel-symptoms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.qh-symptom-chip {
+  padding: 4px 12px;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: rgba(227, 179, 65, 0.07);
+  border: 1px solid rgba(227, 179, 65, 0.22);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.qh-symptom-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+/* 複製深連結 */
+.qh-copy-link {
+  margin-left: auto;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.qh-copy-link:hover {
+  color: var(--gold);
+  border-color: var(--panel-line);
+}
 .qh-panel-points {
   display: flex;
   flex-wrap: wrap;
@@ -573,6 +655,26 @@ body {
     font-size: 12.5px;
   }
   .qh-meridian-element {
+    display: none;
+  }
+  /* 探索 tabs 轉直欄靠左，選項橫向捲動；症狀分組標題收起 */
+  .qh-explore-tabs {
+    flex: none;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0 6px 0 0;
+    border-bottom: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .qh-explore-tab {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+  .qh-symptom-row {
+    display: contents;
+  }
+  .qh-explore-group {
     display: none;
   }
 
@@ -695,6 +797,83 @@ body {
   }
   .qh-compass-label {
     font-size: 12px;
+  }
+}
+
+/* ===== 子午流注時辰鐘（自由探索右下角） ===== */
+.qh-flowclock {
+  position: absolute;
+  right: 26px;
+  bottom: 48px;
+  pointer-events: none;
+}
+.qh-flowclock-ring {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(227, 179, 65, 0.16);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 17, 23, 0.72) 55%, rgba(14, 17, 23, 0.25));
+}
+.qh-flowclock-branch {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  line-height: 1;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.25s, border-color 0.25s, background 0.25s;
+}
+.qh-flowclock-branch:hover {
+  color: var(--ink);
+}
+.qh-flowclock-branch.is-now {
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(227, 179, 65, 0.6);
+}
+.qh-flowclock-branch.is-selected {
+  border-color: var(--panel-line);
+  background: rgba(227, 179, 65, 0.12);
+}
+.qh-flowclock-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.qh-flowclock-label {
+  font-size: 9.5px;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  color: var(--ink-dim);
+}
+.qh-flowclock-meridian {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+@media (max-width: 768px) {
+  /* 手機底部已有 chip bar，時辰鐘先隱藏 */
+  .qh-flowclock {
+    display: none;
   }
 }
 

@@ -3,9 +3,13 @@
  * 驗證經絡/穴位/臟腑資料的完整性，並實際解析所有 anchor 確認落在合理範圍。
  */
 import { MERIDIANS } from '../src/data/meridians'
-import { ACUPOINTS } from '../src/data/acupoints'
+import { ACUPOINTS, ACUPOINT_MAP } from '../src/data/acupoints'
 import { ORGANS, ORGAN_MAP } from '../src/data/organs'
 import { STORY_SECTIONS, TRANSITION_ENDS } from '../src/data/sections'
+import { SYMPTOMS, SYMPTOM_MAP } from '../src/data/symptoms'
+import { COMBOS } from '../src/data/combos'
+import { PLAIN_NOTES } from '../src/data/plainNotes'
+import { FLOW_ORDER } from '../src/data/flowClock'
 import { resolveAnchor } from '../src/lib/anchors'
 import { pointsByRegion } from '../src/lib/regions'
 import { evaluatePose } from '../src/lib/cameraPath'
@@ -44,6 +48,56 @@ for (const p of ACUPOINTS) {
   for (const o of p.organIds) {
     if (!ORGAN_MAP.has(o)) fail(`${p.id} 引用不存在的臟腑 ${o}`)
   }
+  // 白話解內容層（plainNotes.ts 合入）
+  if (p.plain.length < 40) fail(`${p.id} 白話解過短（${p.plain.length} 字）`)
+  if (p.symptoms.length < 1) fail(`${p.id} 缺少症狀標籤`)
+  for (const s of p.symptoms) {
+    if (!SYMPTOM_MAP.has(s)) fail(`${p.id} 症狀標籤 ${s} 不在詞彙表`)
+  }
+}
+// 內容層無孤兒（plainNotes 的 key 都對應存在的穴位）
+for (const id of Object.keys(PLAIN_NOTES)) {
+  if (!ACUPOINT_MAP.has(id)) fail(`plainNotes 有多餘條目 ${id}（穴位不存在）`)
+}
+
+// ── 症狀詞彙覆蓋 ──
+{
+  const bySymptom = new Map<string, number>()
+  for (const p of ACUPOINTS) {
+    for (const s of p.symptoms) bySymptom.set(s, (bySymptom.get(s) ?? 0) + 1)
+  }
+  for (const s of SYMPTOMS) {
+    const n = bySymptom.get(s.id) ?? 0
+    if (n < 2) fail(`症狀「${s.name}」只有 ${n} 穴對應（至少 2）`)
+  }
+  console.log(
+    '  症狀覆蓋：' + SYMPTOMS.map((s) => `${s.name}${bySymptom.get(s.id) ?? 0}`).join('、'),
+  )
+}
+
+// ── 配穴組合 ──
+{
+  const comboIds = new Set(COMBOS.map((c) => c.id))
+  if (comboIds.size !== COMBOS.length) fail('配穴組合 id 重複')
+  for (const c of COMBOS) {
+    if (c.pointIds.length < 2 || c.pointIds.length > 4)
+      fail(`配穴「${c.name}」成員數 ${c.pointIds.length} 不在 2–4`)
+    for (const id of c.pointIds) {
+      if (!ACUPOINT_MAP.has(id)) fail(`配穴「${c.name}」引用不存在的穴位 ${id}`)
+    }
+    if (c.plain.length < 30) fail(`配穴「${c.name}」白話說明過短`)
+  }
+}
+
+// ── 子午流注對映 ──
+{
+  if (FLOW_ORDER.length !== 12) fail(`流注時辰應為 12 槽，實際 ${FLOW_ORDER.length}`)
+  const covered = new Set<number>()
+  for (const s of FLOW_ORDER) {
+    if (!meridianIds.has(s.meridianId)) fail(`流注引用不存在的經絡 ${s.meridianId}`)
+    for (let h = s.startHour; h !== s.endHour; h = (h + 1) % 24) covered.add(h)
+  }
+  if (covered.size !== 24) fail(`流注時段未覆蓋 24 小時（實際 ${covered.size}）`)
 }
 
 // ── anchor 解析範圍檢查 ──

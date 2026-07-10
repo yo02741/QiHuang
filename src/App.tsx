@@ -4,12 +4,15 @@ import { PerformanceMonitor } from '@react-three/drei'
 import { Experience } from '@/scene/Experience'
 import { useIsCoarsePointer } from '@/hooks/useIsCoarsePointer'
 import { Header } from '@/ui/Header'
-import { MeridianList } from '@/ui/MeridianList'
+import { ExplorePanel } from '@/ui/ExplorePanel'
 import { PointPanel } from '@/ui/PointPanel'
 import { Footer } from '@/ui/Footer'
 import { StorySections } from '@/ui/StorySections'
 import { ViewCompass } from '@/ui/ViewCompass'
+import { FlowClock } from '@/ui/FlowClock'
 import { useAppStore } from '@/store/useAppStore'
+import { ACUPOINT_MAP } from '@/data/acupoints'
+import { SECTION_INDEX } from '@/data/sections'
 
 /**
  * 版型三層：fixed 全螢幕 canvas（底）→ 文流滾動軌道 StorySections（中，
@@ -25,16 +28,47 @@ export default function App() {
   // canvas（偶發整幀黑），preserveDrawingBuffer 讓像素常駐可讀
   const shotMode = new URLSearchParams(window.location.search).has('shot')
 
-  // Esc：先取消選穴，再取消選經絡
+  // Esc：選穴 → 配穴/症狀 → 經絡，逐層退出
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      const { selectedPointId, selectedMeridianId, actions } = useAppStore.getState()
+      const { selectedPointId, selectedMeridianId, selectedSymptomId, selectedComboId, actions } =
+        useAppStore.getState()
       if (selectedPointId) actions.selectPoint(null)
+      else if (selectedComboId) actions.selectCombo(null)
+      else if (selectedSymptomId) actions.selectSymptom(null)
       else if (selectedMeridianId) actions.selectMeridian(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // Deep link：?point=LI4 直達穴位（store boot 已切 free）；?sec=back 直達章節
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const pointId = params.get('point')?.toUpperCase()
+    const secId = params.get('sec')
+    if (pointId && ACUPOINT_MAP.has(pointId)) {
+      const point = ACUPOINT_MAP.get(pointId)!
+      // 稍候讓 CameraRig 掛載完成，再觸發選穴飛行
+      const t = setTimeout(
+        () => useAppStore.getState().actions.selectPoint(pointId, point.meridianId),
+        600,
+      )
+      return () => clearTimeout(t)
+    }
+    if (secId && SECTION_INDEX.has(secId as never)) {
+      // 等滾動軌道掛載與版面穩定後，捲到該章停駐段
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.querySelector(`#sec-${secId}`)
+          if (!el) return
+          const rect = el.getBoundingClientRect()
+          window.scrollTo({ top: rect.top + window.scrollY + rect.height * 0.6 - window.innerHeight / 2 })
+        })
+      })
+      return () => cancelAnimationFrame(raf)
+    }
   }, [])
 
   return (
@@ -60,9 +94,10 @@ export default function App() {
       <StorySections />
       <div className="qh-overlay">
         <Header />
-        <MeridianList />
+        <ExplorePanel />
         <PointPanel />
         <ViewCompass />
+        <FlowClock />
         <Footer />
       </div>
     </>

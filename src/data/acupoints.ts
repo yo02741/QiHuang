@@ -1,11 +1,13 @@
 import type { Acupoint } from './types'
+import { PLAIN_NOTES } from './plainNotes'
 
 /**
  * 100 個代表性穴位（每經 5–12 穴）。
- * location 為「示意」教育描述；anchor 為銅人身上的藝術示意位置。
+ * location 為「示意」教育描述；anchor 為銅人身上的藝術示意位置；
+ * 白話解與症狀標籤在 plainNotes.ts（內容層），於檔尾合入。
  * 本資料僅供教育與文化展示用途，非醫療建議。
  */
-export const ACUPOINTS: Acupoint[] = [
+const RAW_POINTS: Omit<Acupoint, 'plain' | 'symptoms'>[] = [
   // ── 手太陰肺經 LU ──
   {
     id: 'LU1', meridianId: 'LU', name: '中府', pinyin: 'Zhōngfǔ', code: 'LU1',
@@ -735,5 +737,11 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['heart'],
   },
 ]
+
+export const ACUPOINTS: Acupoint[] = RAW_POINTS.map((p) => {
+  const note = PLAIN_NOTES[p.id]
+  if (!note) throw new Error(`缺少白話解內容：${p.id}（plainNotes.ts）`)
+  return { ...p, ...note }
+})
 
 export const ACUPOINT_MAP = new Map(ACUPOINTS.map((p) => [p.id, p]))

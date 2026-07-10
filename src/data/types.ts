@@ -37,6 +37,14 @@ export interface Meridian {
   path: BodyAnchor[]  // 風格化行經路線 waypoints
 }
 
+/** 日常症狀受控詞彙（顯示名與分組見 data/symptoms.ts） */
+export type SymptomId =
+  | 'headache' | 'dizziness' | 'insomnia' | 'eye-strain' | 'nasal'
+  | 'sore-throat' | 'oral' | 'tinnitus' | 'neck-shoulder' | 'back-pain'
+  | 'knee-leg' | 'cold-flu' | 'cough' | 'stomach' | 'constipation'
+  | 'diarrhea' | 'nausea' | 'menstrual' | 'stress' | 'palpitation'
+  | 'fatigue' | 'swelling' | 'faint'
+
 export interface Acupoint {
   id: string          // 'LI4'（=== code）
   meridianId: MeridianId
@@ -47,6 +55,8 @@ export interface Acupoint {
   location: string    // 定位（示意描述）
   functions: string[] // 主治/功效
   organIds: OrganId[] // 點選時發光的臟腑
+  plain: string       // 白話解：臟腑對應的為什麼 + 日常情境 + 按法（data/plainNotes.ts 合入）
+  symptoms: SymptomId[] // 症狀反查標籤（data/plainNotes.ts 合入）
 }
 
 export interface Organ {
