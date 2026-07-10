@@ -109,7 +109,8 @@ export const STORY_SECTIONS: StorySection[] = [
       '手三陰、手三陽六條經絡在臂上交會，從腋窩的極泉一路走到指尖的井穴。' +
       '肘有曲池，腕有內關、神門，虎口的合谷更是頭面諸疾的第一要穴——' +
       '一條手臂，就是半部針灸學。',
-    pose: { target: [-0.28, 1.05, 0.02], azimuth: 1.55 * PI, polar: 1.5, distance: 1.15 },
+    // 3/4 斜角（正側面在透視下雙臂會交疊雜亂），略俯視、框近右臂
+    pose: { target: [-0.3, 1.02, 0.02], azimuth: 1.7 * PI, polar: 1.32, distance: 1.05 },
     pointIds: [
       'TE14', 'HT1', 'LI11', 'LU5', 'HT3', 'PC3', 'LI10', 'PC5', 'TE6', 'TE5',
       'PC6', 'LU7', 'HT5', 'SI6', 'LU9', 'HT7', 'PC7', 'TE4', 'LI5', 'LI4',
@@ -169,7 +170,8 @@ export const STORY_SECTIONS: StorySection[] = [
       '足三陰、足三陽行於腿上。膝下的足三里是天下第一保健穴，' +
       '內踝上的三陰交一穴通肝脾腎三經，膕窩委中專治腰背——' +
       '「肚腹三里留，腰背委中求」，針灸歌訣傳唱的就是這裡。',
-    pose: { target: [0, 0.5, 0], azimuth: 5.5 * PI, polar: 1.35, distance: 1.5 },
+    // 3/4 斜角（同上肢：正側面透視雜亂），略俯視
+    pose: { target: [0, 0.48, 0.04], azimuth: 5.7 * PI, polar: 1.28, distance: 1.45 },
     pointIds: [
       'GB31', 'SP10', 'ST34', 'BL40', 'KI10', 'GB34', 'SP9', 'ST36', 'SP8',
       'ST40', 'BL57', 'LR5', 'KI7', 'SP6', 'GB39', 'KI3', 'BL60',

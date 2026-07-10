@@ -58,17 +58,28 @@ async function settleFrames(p, n = 30, timeout = 90000) {
 }
 
 /**
- * 防黑幀截圖：SwiftShader 偶發「合成器餓死」的整幀黑（PNG 壓縮後極小），
- * 以檔案大小啟發式偵測，黑幀就再等幀重拍（最多 3 次）。
+ * 防黑幀截圖：SwiftShader 偶發輸出整幀黑 canvas（DOM 仍在，整張 PNG
+ * 可能不小），故另抽「畫面中央 3D 區域」小截圖——均勻黑壓縮後極小，
+ * 以此偵測並重拍（最多 3 次）。
  */
 async function shoot(p, path, minBytes = 40000) {
+  const vp = p.viewportSize()
+  // 雙探針：中央（主體）+ 偏移（背景金塵/經絡）。單一探針可能落在
+  // 均勻銅面上誤判，兩個都極小才視為黑幀
+  const probes = [
+    { x: Math.round(vp.width * 0.42), y: Math.round(vp.height * 0.38), width: 140, height: 140 },
+    { x: Math.round(vp.width * 0.24), y: Math.round(vp.height * 0.2), width: 140, height: 140 },
+  ]
   for (let attempt = 0; ; attempt++) {
     const buf = await p.screenshot({ path })
-    if (buf.length >= minBytes || attempt >= 2) {
-      if (buf.length < minBytes) console.warn(`⚠ ${path} 疑似黑幀（${buf.length}B），已保留最後一次`)
+    const sizes = []
+    for (const clip of probes) sizes.push((await p.screenshot({ clip })).length)
+    const suspicious = buf.length < minBytes || sizes.every((s) => s < 900)
+    if (!suspicious || attempt >= 2) {
+      if (suspicious) console.warn(`⚠ ${path} 疑似黑幀（全圖 ${buf.length}B / 探針 ${sizes.join('/')}B），已保留最後一次`)
       return
     }
-    await p.waitForTimeout(1200)
+    await p.waitForTimeout(1500)
     await settleFrames(p, 40)
   }
 }
@@ -148,11 +159,13 @@ try {
   await shoot(page, `${SHOT_DIR}01-landing.png`)
   console.log('✓ 01-landing.png')
 
-  // 逐章捲動採樣（涵蓋正面/頭頂俯瞰/背面/足部四種鏡位）
+  // 逐章捲動採樣（涵蓋正面/頭頂俯瞰/上下肢斜角/背面/足部鏡位）
   const stops = [
     ['face-front', 1],
     ['crown', 3],
+    ['upper-limb', 6],
     ['back', 8],
+    ['lower-limb', 11],
     ['foot', 12],
   ]
   for (const [id, index] of stops) {

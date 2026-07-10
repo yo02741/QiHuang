@@ -667,6 +667,13 @@ body {
   border: 1px solid var(--panel-line);
   border-radius: 99px;
   pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+}
+.qh-compass.is-visible {
+  opacity: 1;
+  transform: translateX(-50%);
 }
 .qh-compass-needle {
   display: inline-block;
