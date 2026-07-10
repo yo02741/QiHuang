@@ -8,6 +8,7 @@ import { ExplorePanel } from '@/ui/ExplorePanel'
 import { PointPanel } from '@/ui/PointPanel'
 import { Footer } from '@/ui/Footer'
 import { StorySections } from '@/ui/StorySections'
+import { StepNav } from '@/ui/StepNav'
 import { ViewCompass } from '@/ui/ViewCompass'
 import { FlowClock } from '@/ui/FlowClock'
 import { useAppStore } from '@/store/useAppStore'
@@ -95,6 +96,7 @@ export default function App() {
       <div className="qh-overlay">
         <Header />
         <ExplorePanel />
+        <StepNav />
         <PointPanel />
         <ViewCompass />
         <FlowClock />

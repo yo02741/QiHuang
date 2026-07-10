@@ -788,8 +788,9 @@ html {
     max-height: 62vh;
     animation: qh-slide-up 0.4s var(--ease-out);
   }
+  /* 導覽（步進模式）：迷你卡坐在步進控制列上方 */
   body[data-qh-mode='story'] .qh-panel {
-    bottom: 10px;
+    bottom: 68px;
   }
   .qh-panel-body {
     padding: 16px 16px 14px;
@@ -1019,6 +1020,77 @@ html {
   .qh-flowclock {
     display: none;
   }
+}
+
+/* ===== 手機步進導覽（窄視口 story 模式；元件以 JS 控制掛載） ===== */
+.qh-stepnav {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  pointer-events: auto;
+}
+.qh-stepnav-btn {
+  flex: none;
+  width: 52px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--gold);
+  background: rgba(14, 17, 23, 0.82);
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.qh-stepnav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.qh-stepnav-select {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 8px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+  background: rgba(14, 17, 23, 0.82);
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  color-scheme: dark;
+}
+.qh-stepnav-select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* landing / finale 疊層（步進模式沒有滾動軌道） */
+.qh-steplay {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 84px;
+  text-align: center;
+  pointer-events: none;
+}
+.qh-steplay > * {
+  pointer-events: auto;
+}
+.qh-steplay .qh-section-title--landing {
+  font-size: clamp(44px, 14vw, 64px);
+}
+.qh-steplay-body {
+  margin: 6px auto 0;
+  max-width: 30em;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--ink-dim);
+}
+.qh-steplay .qh-free-enter {
+  margin-top: 16px;
+  padding: 10px 34px;
 }
 
 /* ===== 臟腑名稱標籤（透視時浮現） ===== */

@@ -12,8 +12,73 @@
  */
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import { inflateSync } from 'node:zlib'
+
+/**
+ * 解 PNG 並取樣矩形區域的最大 RGB 亮度（黑幀偵測的 ground truth）。
+ * 僅支援 8-bit RGB/RGBA 非交錯（CDP 截圖即此格式）。
+ */
+function pngRegionMax(buf, x0, y0, w, h) {
+  let pos = 8
+  let width = 0
+  let height = 0
+  let colorType = 6
+  const idat = []
+  while (pos < buf.length) {
+    const len = buf.readUInt32BE(pos)
+    const type = buf.toString('ascii', pos + 4, pos + 8)
+    const data = buf.subarray(pos + 8, pos + 8 + len)
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0)
+      height = data.readUInt32BE(4)
+      colorType = data[9]
+    } else if (type === 'IDAT') idat.push(data)
+    else if (type === 'IEND') break
+    pos += 12 + len
+  }
+  const ch = colorType === 6 ? 4 : 3
+  const raw = inflateSync(Buffer.concat(idat))
+  const stride = width * ch
+  const out = Buffer.alloc(height * stride)
+  let rp = 0
+  for (let y = 0; y < height; y++) {
+    const f = raw[rp++]
+    const o = y * stride
+    for (let i = 0; i < stride; i++) {
+      const cur = raw[rp + i]
+      const a = i >= ch ? out[o + i - ch] : 0
+      const b = y ? out[o - stride + i] : 0
+      const c = i >= ch && y ? out[o - stride + i - ch] : 0
+      let v = cur
+      if (f === 1) v += a
+      else if (f === 2) v += b
+      else if (f === 3) v += (a + b) >> 1
+      else if (f === 4) {
+        const p = a + b - c
+        const pa = Math.abs(p - a)
+        const pb = Math.abs(p - b)
+        const pc = Math.abs(p - c)
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c
+      }
+      out[o + i] = v & 0xff
+    }
+    rp += stride
+  }
+  let max = 0
+  const x1 = Math.min(x0 + w, width)
+  const y1 = Math.min(y0 + h, height)
+  for (let y = y0; y < y1; y += 2) {
+    for (let x = x0; x < x1; x += 2) {
+      const o = y * stride + x * ch
+      if (out[o] > max) max = out[o]
+      if (out[o + 1] > max) max = out[o + 1]
+      if (out[o + 2] > max) max = out[o + 2]
+    }
+  }
+  return max
+}
 
 const PORT = 4173
 const BASE = `http://localhost:${PORT}`
@@ -58,29 +123,38 @@ async function settleFrames(p, n = 30, timeout = 90000) {
 }
 
 /**
- * 防黑幀截圖：SwiftShader 偶發輸出整幀黑 canvas（DOM 仍在，整張 PNG
- * 可能不小），故另抽「畫面中央 3D 區域」小截圖——均勻黑壓縮後極小，
- * 以此偵測並重拍（最多 3 次）。
+ * 防黑幀截圖：SwiftShader 下 CDP 的 surface 合成截圖有高機率漏掉
+ * WebGL 圖層（canvas buffer 實際有內容）——改用 fromSurface:false
+ * 從 renderer 直抓，繞過 surface 合成；檔案過小仍重拍當備援。
  */
-async function shoot(p, path, minBytes = 40000) {
+const cdpSessions = new WeakMap()
+async function shoot(p, path) {
+  let cdp = cdpSessions.get(p)
+  if (!cdp) {
+    cdp = await p.context().newCDPSession(p)
+    cdpSessions.set(p, cdp)
+  }
   const vp = p.viewportSize()
-  // 雙探針：中央（主體）+ 偏移（背景金塵/經絡）。單一探針可能落在
-  // 均勻銅面上誤判，兩個都極小才視為黑幀
-  const probes = [
-    { x: Math.round(vp.width * 0.42), y: Math.round(vp.height * 0.38), width: 140, height: 140 },
-    { x: Math.round(vp.width * 0.24), y: Math.round(vp.height * 0.2), width: 140, height: 140 },
-  ]
+  // 3D 主體區域（畫面中央偏上）：黑幀時只剩 DOM/背景色（亮度 ≲ 20），
+  // 正常場景有金塵/銅身高光（≳ 60）
+  const rx = Math.round(vp.width * 0.28)
+  const ry = Math.round(vp.height * 0.16)
+  const rw = Math.round(vp.width * 0.44)
+  const rh = Math.round(vp.height * 0.4)
   for (let attempt = 0; ; attempt++) {
-    const buf = await p.screenshot({ path })
-    const sizes = []
-    for (const clip of probes) sizes.push((await p.screenshot({ clip })).length)
-    const suspicious = buf.length < minBytes || sizes.every((s) => s < 900)
-    if (!suspicious || attempt >= 2) {
-      if (suspicious) console.warn(`⚠ ${path} 疑似黑幀（全圖 ${buf.length}B / 探針 ${sizes.join('/')}B），已保留最後一次`)
+    const { data } = await cdp.send('Page.captureScreenshot', {
+      format: 'png',
+      fromSurface: false,
+    })
+    const buf = Buffer.from(data, 'base64')
+    writeFileSync(path, buf)
+    const lum = pngRegionMax(buf, rx, ry, rw, rh)
+    if (lum >= 28 || attempt >= 6) {
+      if (lum < 28) console.warn(`⚠ ${path} 疑似黑幀（3D 區亮度 ${lum}），已保留最後一次`)
       return
     }
-    await p.waitForTimeout(1500)
-    await settleFrames(p, 40)
+    await p.waitForTimeout(900)
+    await settleFrames(p, 30)
   }
 }
 
@@ -280,16 +354,45 @@ try {
   await mobile.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await mobile.waitForTimeout(2800)
   await settleFrames(mobile, 60)
+  // 手機步進導覽：landing 疊層 + 開始導覽鈕
+  await mobile.getByRole('button', { name: /開始導覽/ }).waitFor({ timeout: 5000 })
   await shoot(mobile, `${SHOT_DIR}07-mobile-landing.png`)
-  console.log('✓ 07-mobile-landing.png')
+  console.log('✓ 07-mobile-landing.png（步進 landing 疊層）')
 
-  await scrollToSection(mobile, 'face-front', 1)
-  // 手機導覽：頂部章節條 + 底部 tour 迷你卡（收合）同框
+  //「開始導覽」→ 第一穴（面部章第一穴 攢竹 BL2 成為 spotlight）
+  await mobile.getByRole('button', { name: /開始導覽/ }).click()
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().spotlightPointId === 'BL2',
+    undefined,
+    { timeout: 10000 },
+  )
   await mobile.waitForSelector('.qh-panel--tour.is-collapsed', { timeout: 5000 })
+  await mobile.waitForTimeout(1800)
+  await settleFrames(mobile, 40)
   await shoot(mobile, `${SHOT_DIR}08-mobile-section.png`)
-  console.log('✓ 08-mobile-section.png（頂部章節條 + tour 迷你卡）')
+  console.log('✓ 08-mobile-section.png（開始導覽 → 攢竹 + 迷你卡）')
 
-  await scrollToSection(mobile, 'lower-limb', 11)
+  //「下一穴」步進
+  await mobile.locator('.qh-stepnav-next').click()
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().spotlightPointId === 'BL1',
+    undefined,
+    { timeout: 8000 },
+  )
+  console.log('✓ 下一穴步進（攢竹 → 睛明）')
+
+  // 章節選單跳轉 → 下肢章第一穴
+  await mobile.selectOption('.qh-stepnav-select', 'lower-limb')
+  await mobile.waitForSelector('body[data-qh-section="11"]', { timeout: 10000 })
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().spotlightPointId === 'GB31',
+    undefined,
+    { timeout: 8000 },
+  )
+  await mobile.waitForTimeout(1800)
+  await settleFrames(mobile, 40)
+  console.log('✓ 章節選單跳轉（下肢・風市）')
+
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
   await mobile.locator('.qh-panel-title', { hasText: '足三里' }).waitFor({ timeout: 5000 })
   await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })

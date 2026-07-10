@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { STORY_SECTIONS, sectionHeightVh } from '@/data/sections'
 import { SCROLL } from '@/lib/constants'
 import { useAppStore } from '@/store/useAppStore'
+import { useIsNarrow } from '@/hooks/useIsNarrow'
 
 /**
  * 滾動敘事軌道：每章一個 ~130vh 的 <section>（正常文流，撐高頁面），
@@ -16,12 +17,15 @@ const clamp01 = (v: number) => Math.min(Math.max(v, 0), 1)
 
 export function StorySections() {
   const mode = useAppStore((s) => s.mode)
+  const narrow = useIsNarrow()
   const enterFree = useAppStore((s) => s.actions.enterFree)
   const trackRef = useRef<HTMLDivElement>(null)
+  // 窄視口的敘事改由 StepNav 步進驅動（滾動與手機慣性手勢先天衝突）
+  const scrollDriven = mode === 'story' && !narrow
 
   // scroll → store（rAF 節流；velocity 供微互動衰減與 focus 退出判定）
   useEffect(() => {
-    if (mode !== 'story') return
+    if (!scrollDriven) return
     const track = trackRef.current
     if (!track) return
     const sections = Array.from(track.querySelectorAll('section'))
@@ -64,11 +68,11 @@ export function StorySections() {
       window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [mode])
+  }, [scrollDriven])
 
   // 文字卡進出視口的淡入淡出
   useEffect(() => {
-    if (mode !== 'story') return
+    if (!scrollDriven) return
     const track = trackRef.current
     if (!track) return
     const cards = Array.from(track.querySelectorAll('.qh-section-card'))
@@ -80,9 +84,9 @@ export function StorySections() {
     )
     cards.forEach((c) => io.observe(c))
     return () => io.disconnect()
-  }, [mode])
+  }, [scrollDriven])
 
-  if (mode !== 'story') return null
+  if (!scrollDriven) return null
 
   return (
     <div className="qh-track" ref={trackRef}>
