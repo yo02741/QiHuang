@@ -25,8 +25,17 @@ export const CAMERA_POSES = {
 
 export const TIMING = {
   orbitSmoothTime: 0.55,
-  introFlySmoothTime: 1.5,
   bodyFade: 0.35, // easing.damp λ
+} as const
+
+/** 滾動敘事運鏡參數 */
+export const SCROLL = {
+  poseDamp: 0.22,     // 相機阻尼追蹤滾動姿勢的 λ（秒）——「類 lenis」手感的來源
+  dragMaxAz: 0.35,    // 章內微互動拖曳的 azimuth 上限（rad）
+  dragMaxPol: 0.15,   // polar 上限（rad）
+  dragSense: 2.4,     // 拖曳靈敏度（rad / 畫面寬）
+  dragDecay: 0.3,     // 放開/換章後 offset 衰減 λ（秒）
+  focusExitPx: 80,    // focus 中累積滾動超過此值 → 自動退出選穴
 } as const
 
 export const BODY_OPACITY = { normal: 1.0, xray: 0.22, depthWriteThreshold: 0.6 } as const

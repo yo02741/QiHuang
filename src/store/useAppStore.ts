@@ -1,20 +1,29 @@
 import { create } from 'zustand'
 import type { MeridianId } from '@/data/types'
 
-export type Phase = 'intro' | 'entering' | 'explore'
+export type Mode = 'story' | 'free'
 
 interface AppState {
-  phase: Phase
+  /** story = 滾動敘事（預設）；free = 自由探索（原 orbit 互動） */
+  mode: Mode
+  /** 當前章節索引（floor(rawProgress)，只在跨章時變動，供 React 訂閱） */
+  sectionIndex: number
+  /** 連續滾動進度 0..N-1（高頻 transient；元件請勿訂閱，useFrame 以 getState() 讀） */
+  rawProgress: number
+  /** 滾動速度 px/s（transient，微互動衰減與 focus 退出判定用） */
+  scrollVelocity: number
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
-  selectedPointId: string | null        // 有值 ⇒ 透視模式
+  selectedPointId: string | null        // 有值 ⇒ 透視模式 + 相機 focus
   selectedSide: 'L' | 'R'               // 鏡頭聚焦在被點選的那一側
   hoveredPointId: string | null
   hoveredSide: 'L' | 'R'                // tooltip 顯示在被 hover 的那一側
   xray: boolean
   debug: boolean
   actions: {
-    enter(): void
-    enterDone(): void
+    /** StorySections 的 scroll handler 專用（rAF 節流後呼叫） */
+    setScroll(rawProgress: number, velocity: number): void
+    enterFree(): void
+    enterStory(): void
     selectMeridian(id: MeridianId | null): void
     selectPoint(id: string | null, meridianId?: MeridianId, side?: 'L' | 'R'): void
     hoverPoint(id: string | null, side?: 'L' | 'R'): void
@@ -24,11 +33,14 @@ interface AppState {
 
 const params = new URLSearchParams(window.location.search)
 const debug = params.has('debug')
-// ?az / ?debug（smoke 截圖與調校）直接跳過開場
-const skipIntro = debug || params.has('az')
+// ?az / ?debug（smoke 截圖與調校）直接進自由探索，不走滾動敘事
+const skipStory = debug || params.has('az')
 
 export const useAppStore = create<AppState>()((set) => ({
-  phase: skipIntro ? 'explore' : 'intro',
+  mode: skipStory ? 'free' : 'story',
+  sectionIndex: 0,
+  rawProgress: 0,
+  scrollVelocity: 0,
   selectedMeridianId: null,
   selectedPointId: null,
   selectedSide: 'L',
@@ -37,8 +49,16 @@ export const useAppStore = create<AppState>()((set) => ({
   xray: false,
   debug,
   actions: {
-    enter: () => set({ phase: 'entering' }),
-    enterDone: () => set({ phase: 'explore' }),
+    setScroll: (rawProgress, velocity) =>
+      set((s) => {
+        const sectionIndex = Math.floor(rawProgress)
+        return sectionIndex === s.sectionIndex
+          ? { rawProgress, scrollVelocity: velocity }
+          : { rawProgress, scrollVelocity: velocity, sectionIndex }
+      }),
+    enterFree: () => set({ mode: 'free' }),
+    enterStory: () =>
+      set({ mode: 'story', selectedPointId: null, selectedMeridianId: null, xray: false }),
     selectMeridian: (id) =>
       set({ selectedMeridianId: id, selectedPointId: null, xray: false }),
     selectPoint: (id, meridianId, side = 'L') =>

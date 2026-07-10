@@ -3,13 +3,18 @@ import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
 import { Experience } from '@/scene/Experience'
 import { useIsCoarsePointer } from '@/hooks/useIsCoarsePointer'
-import { IntroOverlay } from '@/ui/IntroOverlay'
 import { Header } from '@/ui/Header'
 import { MeridianList } from '@/ui/MeridianList'
 import { PointPanel } from '@/ui/PointPanel'
 import { Footer } from '@/ui/Footer'
+import { StorySections } from '@/ui/StorySections'
 import { useAppStore } from '@/store/useAppStore'
 
+/**
+ * 版型三層：fixed 全螢幕 canvas（底）→ 文流滾動軌道 StorySections（中，
+ * 撐高頁面驅動敘事）→ fixed overlay UI（頂）。free 模式軌道卸載，
+ * 頁面回到單屏，即原本的自由互動 app。
+ */
 export default function App() {
   const coarse = useIsCoarsePointer()
   // 效能自動降階：掉幀時降 dpr，回穩時升回
@@ -44,12 +49,12 @@ export default function App() {
           </PerformanceMonitor>
         </Canvas>
       </div>
+      <StorySections />
       <div className="qh-overlay">
         <Header />
         <MeridianList />
         <PointPanel />
         <Footer />
-        <IntroOverlay />
       </div>
     </>
   )

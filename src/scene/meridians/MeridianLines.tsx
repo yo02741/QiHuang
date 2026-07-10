@@ -19,12 +19,12 @@ const BOOST_ACTIVE = 2.6 // 選中色分量 >1 → bloom 拾取
 function MeridianLine({ curve, index }: { curve: MeridianCurve; index: number }) {
   const solidRef = useRef<Line2>(null)
   const dashedRef = useRef<Line2>(null)
-  // 進入 explore 後交錯淡入（每條線延遲 80ms）
+  // 首幀起交錯淡入（每條線延遲 80ms）
   const entry = useRef(0)
-  const exploreStart = useRef<number | null>(null)
+  const entryStart = useRef<number | null>(null)
 
   useFrame(({ clock }, delta) => {
-    const { selectedMeridianId, phase } = useAppStore.getState()
+    const { selectedMeridianId } = useAppStore.getState()
     const active = selectedMeridianId === curve.meridianId
     const anySelected = selectedMeridianId !== null
 
@@ -32,12 +32,10 @@ function MeridianLine({ curve, index }: { curve: MeridianCurve; index: number })
     const dashed = dashedRef.current
     if (!solid || !dashed) return
 
-    if (phase === 'explore') {
-      exploreStart.current ??= clock.elapsedTime
-      const elapsed = clock.elapsedTime - exploreStart.current
-      const entryTarget = elapsed > index * 0.08 ? 1 : 0
-      entry.current += (entryTarget - entry.current) * (1 - Math.exp(-delta / 0.4))
-    }
+    entryStart.current ??= clock.elapsedTime
+    const elapsed = clock.elapsedTime - entryStart.current
+    const entryTarget = elapsed > index * 0.08 ? 1 : 0
+    entry.current += (entryTarget - entry.current) * (1 - Math.exp(-delta / 0.4))
 
     // 常駐實線：無選擇 0.85；他經被選中時退到 0.12
     const solidMat = solid.material as LineMaterial

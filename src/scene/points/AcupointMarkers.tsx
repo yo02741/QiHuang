@@ -4,8 +4,10 @@ import { useCursor } from '@react-three/drei'
 import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
 import { ACUPOINTS } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
+import { STORY_SECTIONS } from '@/data/sections'
 import { resolveAnchor, type Side } from '@/lib/anchors'
 import { useAppStore } from '@/store/useAppStore'
+import { DWELL_START } from '@/lib/cameraPath'
 import { RENDER_ORDER } from '@/lib/constants'
 import type { MeridianId } from '@/data/types'
 
@@ -13,7 +15,25 @@ import type { MeridianId } from '@/data/types'
  * 穴位標記：兩層 InstancedMesh —
  * 視覺層（小球 + instanceColor，休止金 / hover 增亮 / 選中經絡色 ×3.5 bloom）
  * 命中層（半徑 2.5 倍、材質不可見但可 raycast，掛 R3F pointer events）
+ *
+ * story 模式（未選穴時）：當前章的穴位隨 sectionProgress 逐一點亮
+ * （經絡色 ×2.8 進 bloom），其餘章節暗化——重用既有 damp 動畫做出
+ * 「一顆顆亮起」的節奏。點亮門檻公式與 SectionPointLabels 一致。
  */
+
+/** pointId → 所屬章節與點亮順序（門檻 = DWELL_START 起依序鋪在停駐段） */
+const SECTION_LIGHT = new Map<string, { section: number; threshold: number }>()
+/** 無穴位的章節（landing / finale）：全部標記回休止金，不做暗化 */
+const NEUTRAL_SECTIONS = new Set<number>()
+STORY_SECTIONS.forEach((s, si) => {
+  if (s.pointIds.length === 0) NEUTRAL_SECTIONS.add(si)
+  s.pointIds.forEach((id, oi) => {
+    SECTION_LIGHT.set(id, {
+      section: si,
+      threshold: DWELL_START + (1 - DWELL_START - 0.08) * (oi / s.pointIds.length),
+    })
+  })
+})
 
 interface MarkerInstance {
   pointId: string
@@ -67,10 +87,12 @@ export function AcupointMarkers() {
     const mesh = visualRef.current
     const hit = hitRef.current
     if (!mesh || !hit) return
-    const { hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId } =
+    const { hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId, mode, sectionIndex, rawProgress } =
       useAppStore.getState()
 
     const k = 1 - Math.exp(-delta / 0.12) // 統一的 damp 係數
+    const storyLight = mode === 'story' && selectedPointId === null
+    const sectionProgress = rawProgress - sectionIndex
 
     instances.forEach((inst, i) => {
       const isSelected = selectedPointId === inst.pointId
@@ -87,6 +109,22 @@ export function AcupointMarkers() {
       } else if (isHovered) {
         targetScale = 1.8
         tmpC.copy(REST_GOLD).multiplyScalar(1.6)
+      } else if (storyLight) {
+        // 滾動敘事：當前章的穴位依進度逐一點亮，其餘章節暗化；
+        // landing / finale 全體回休止金
+        const light = SECTION_LIGHT.get(inst.pointId)
+        if (NEUTRAL_SECTIONS.has(sectionIndex)) {
+          tmpC.copy(REST_GOLD).multiplyScalar(0.55)
+        } else if (light?.section === sectionIndex && sectionProgress >= light.threshold) {
+          targetScale = 1.5
+          tmpC.multiplyScalar(2.8)
+        } else if (light?.section === sectionIndex) {
+          targetScale = 1.1
+          tmpC.copy(REST_GOLD).multiplyScalar(0.4)
+        } else {
+          targetScale = 0.7
+          tmpC.copy(REST_GOLD).multiplyScalar(0.15)
+        }
       } else if (dimmed) {
         targetScale = 0.7
         tmpC.copy(REST_GOLD).multiplyScalar(0.15)
@@ -136,7 +174,7 @@ export function AcupointMarkers() {
     e.stopPropagation()
     if (e.instanceId === undefined) return
     const inst = instances[e.instanceId]
-    useAppStore.getState().actions.selectPoint(inst.pointId, inst.meridianId)
+    useAppStore.getState().actions.selectPoint(inst.pointId, inst.meridianId, inst.side)
   }
 
   return (

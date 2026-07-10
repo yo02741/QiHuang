@@ -5,7 +5,10 @@
 import { MERIDIANS } from '../src/data/meridians'
 import { ACUPOINTS } from '../src/data/acupoints'
 import { ORGANS, ORGAN_MAP } from '../src/data/organs'
+import { STORY_SECTIONS } from '../src/data/sections'
 import { resolveAnchor } from '../src/lib/anchors'
+import { pointsByRegion } from '../src/lib/regions'
+import { evaluatePose } from '../src/lib/cameraPath'
 
 let failures = 0
 const fail = (msg: string) => {
@@ -72,11 +75,72 @@ for (const m of MERIDIANS) {
   if (n < 3 || n > 6) fail(`${m.id} 穴位數 ${n} 不在 3–6 範圍`)
 }
 
+// ── 滾動敘事章節（sections × regions × cameraPath）──
+{
+  // 部位推導全覆蓋（regionOf 對 point 型 anchor 未列 override 會 throw）
+  let derived: Map<string, string[]>
+  try {
+    derived = pointsByRegion(ACUPOINTS)
+  } catch (e) {
+    derived = new Map()
+    fail(String(e instanceof Error ? e.message : e))
+  }
+
+  const sectionIds = new Set(STORY_SECTIONS.map((s) => s.id))
+  if (sectionIds.size !== STORY_SECTIONS.length) fail('section id 重複')
+
+  // 各 section 的 pointIds 必須與部位推導完全一致（雙向）
+  const claimed = new Set<string>()
+  for (const s of STORY_SECTIONS) {
+    for (const id of s.pointIds) {
+      if (claimed.has(id)) fail(`${id} 被多個 section 收錄`)
+      claimed.add(id)
+      const region = derived.get(s.id as string)
+      if (!region?.includes(id)) fail(`${s.id} 收錄了 ${id}，但部位推導不屬於此區`)
+    }
+    for (const id of s.labelIds) {
+      if (!s.pointIds.includes(id)) fail(`${s.id} 的標籤 ${id} 不在 pointIds 內`)
+    }
+    if (s.labelIds.length > 8) fail(`${s.id} 標籤數 ${s.labelIds.length} 超過 8`)
+  }
+  for (const p of ACUPOINTS) {
+    if (!claimed.has(p.id)) fail(`${p.id} 未被任何 section 收錄`)
+  }
+
+  // 相機軌道：數值有限、azimuth 單調不減、polar/distance 合理
+  let prevAz = -Infinity
+  for (const s of STORY_SECTIONS) {
+    const { target, azimuth, polar, distance } = s.pose
+    if (![...target, azimuth, polar, distance].every(Number.isFinite))
+      fail(`${s.id} pose 含非有限數`)
+    if (azimuth < prevAz) fail(`${s.id} azimuth ${azimuth.toFixed(2)} 回頭（前值 ${prevAz.toFixed(2)}），軌道應單調`)
+    prevAz = azimuth
+    if (polar <= 0 || polar >= Math.PI) fail(`${s.id} polar ${polar} 超出 (0, π)`)
+    if (distance <= 0.3 || distance > 10) fail(`${s.id} distance ${distance} 超出 (0.3, 10]`)
+  }
+
+  // evaluatePose 全程掃描：任意進度都能算出有限姿勢
+  const poses = STORY_SECTIONS.map((s) => s.pose)
+  for (let r = 0; r <= (STORY_SECTIONS.length - 1) * 8; r++) {
+    const p = evaluatePose(poses, r / 8)
+    if (![...p.target, p.azimuth, p.polar, p.distance].every(Number.isFinite)) {
+      fail(`evaluatePose(${(r / 8).toFixed(3)}) 產出非有限數`)
+      break
+    }
+  }
+}
+
 if (failures) {
   console.error(`\n✗ 資料驗證失敗：${failures} 個問題`)
   process.exit(1)
 }
+const bodySections = STORY_SECTIONS.filter((s) => s.pointIds.length > 0)
 console.log(
   `✓ 資料驗證通過：${MERIDIANS.length} 經絡、${ACUPOINTS.length} 穴位、${ORGANS.length} 臟腑；` +
-    `所有 anchor（左右側）解析皆落在合理範圍`,
+    `所有 anchor（左右側）解析皆落在合理範圍；` +
+    `${STORY_SECTIONS.length} 個敘事章節（${bodySections.length} 個部位章）完整收錄 67 穴`,
+)
+console.log(
+  '  章節分佈：' +
+    bodySections.map((s) => `${s.title.replace(/・.*/, '')}${s.pointIds.length}`).join('、'),
 )

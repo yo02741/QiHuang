@@ -2,17 +2,15 @@ import { MERIDIANS } from '@/data/meridians'
 import { ELEMENT_NAMES } from '@/lib/wuxing'
 import { useAppStore } from '@/store/useAppStore'
 
-/** 十四經絡選擇列表（桌機左側直欄；行動裝置為水平 chip bar） */
+/** 十四經絡選擇列表（僅自由探索模式；桌機左側直欄、行動裝置水平 chip bar） */
 export function MeridianList() {
-  const phase = useAppStore((s) => s.phase)
+  const mode = useAppStore((s) => s.mode)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
   const selectMeridian = useAppStore((s) => s.actions.selectMeridian)
 
+  if (mode !== 'free') return null
   return (
-    <nav
-      className={`qh-meridians ${phase === 'explore' ? 'is-visible' : ''}`}
-      aria-label="經絡選擇"
-    >
+    <nav className="qh-meridians is-visible" aria-label="經絡選擇">
       <button
         type="button"
         className={`qh-meridian-btn ${selectedMeridianId === null ? 'is-active' : ''}`}

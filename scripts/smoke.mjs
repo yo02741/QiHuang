@@ -2,22 +2,40 @@
  * 無頭視覺 smoke test（playwright-core，不用測試框架）。
  * 前置：npm run build（本腳本會自行啟動 vite preview）。
  *
+ * 流程（滾動敘事版）：
+ *   載入 → landing 截圖 → 逐章捲動（等 data-qh-section + 相機阻尼落定）
+ *   → 選穴 focus + 滾動自動退出驗證 → 終章進自由探索 → 選經絡
+ *   → ?az 四方位截圖（free 模式）→ 行動視口捲動 + 選穴抽屜
+ *
  * 無頭 WebGL 旗標說明：Chromium 於 headless 環境需 SwiftShader 軟體算圖；
  * 若 angle/swiftshader 失效，備援旗標為 --use-gl=swiftshader。
  */
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
-import { globSync } from 'node:fs'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { homedir } from 'node:os'
 
 const PORT = 4173
 const BASE = `http://localhost:${PORT}`
 const SHOT_DIR = new URL('../screenshots/', import.meta.url).pathname
 
-// 以 glob 解析預裝 Chromium 路徑，免除 playwright 版本↔瀏覽器 build 對映問題
-const [chromePath] = globSync('/opt/pw-browsers/chromium-*/chrome-linux/chrome')
+/** 依序尋找可用的 Chromium：CI 預裝 → playwright cache → 系統 Chrome */
+function findChrome() {
+  for (const base of ['/opt/pw-browsers', `${homedir()}/.cache/ms-playwright`]) {
+    if (!existsSync(base)) continue
+    for (const dir of readdirSync(base).filter((d) => d.startsWith('chromium-')).sort().reverse()) {
+      const p = `${base}/${dir}/chrome-linux/chrome`
+      if (existsSync(p)) return p
+    }
+  }
+  for (const p of ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+    if (existsSync(p)) return p
+  }
+  return null
+}
+const chromePath = findChrome()
 if (!chromePath) {
-  console.error('找不到預裝 Chromium（/opt/pw-browsers/chromium-*）')
+  console.error('找不到 Chromium（/opt/pw-browsers、~/.cache/ms-playwright 或系統 Chrome）')
   process.exit(1)
 }
 
@@ -37,6 +55,23 @@ async function settleFrames(p, n = 30, timeout = 90000) {
     start + n,
     { timeout },
   )
+}
+
+/** 捲動到「第 index 章、章內進度 progress」（rawProgress = index + progress） */
+async function scrollToSection(p, id, index, progress = 0.85) {
+  await p.evaluate(
+    ({ id, progress }) => {
+      const el = document.querySelector(`#sec-${id}`)
+      const rect = el.getBoundingClientRect()
+      const top = rect.top + window.scrollY
+      window.scrollTo({ top: top + progress * rect.height - window.innerHeight / 2 })
+    },
+    { id, progress },
+  )
+  await p.waitForSelector(`body[data-qh-section="${index}"]`, { timeout: 15000 })
+  // 相機阻尼（λ≈0.22s）與穴位點亮動畫落定（牆鐘）＋ 合成新幀
+  await p.waitForTimeout(1800)
+  await settleFrames(p, 40)
 }
 
 async function waitForServer(timeoutMs = 20000) {
@@ -81,28 +116,73 @@ try {
   })
 
   // 暖機：SwiftShader 首次載入的 shader 冷編譯會餓死合成器（黑幀數十秒）；
-  // 先完整跑一次「載入→進入」把 shader cache 編熱，正式截圖走第二次載入
+  // 先完整跑一次「載入→選穴」把 shader cache 編熱，正式截圖走第二次載入
   await page.goto(`${BASE}/?az=0`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
   await settleFrames(page, 80, 180000)
   console.log('✓ 暖機完成（shader cache）')
 
+  // ── 滾動敘事 ──
   await page.goto(BASE, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
-  await settleFrames(page, 60)
-  await page.screenshot({ path: `${SHOT_DIR}01-intro.png` })
-  console.log('✓ 01-intro.png')
-
-  // 進入：點真實按鈕 → 等 phase=explore（鏡頭飛入完成）
-  await page.getByRole('button', { name: '進入' }).click()
-  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
+  await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })
   await page.waitForTimeout(2800) // 經絡線交錯淡入（牆鐘時間）
   await settleFrames(page, 60)
-  await page.screenshot({ path: `${SHOT_DIR}02-explore.png` })
-  console.log('✓ 02-explore.png')
+  await page.screenshot({ path: `${SHOT_DIR}01-landing.png` })
+  console.log('✓ 01-landing.png')
 
-  // 銅人四方位截圖（美術迭代迴圈用）
+  // 逐章捲動採樣（涵蓋正面/頭頂俯瞰/背面/足部四種鏡位）
+  const stops = [
+    ['face-front', 1],
+    ['crown', 3],
+    ['back', 8],
+    ['foot', 12],
+  ]
+  for (const [id, index] of stops) {
+    await scrollToSection(page, id, index)
+    await page.screenshot({ path: `${SHOT_DIR}02-section-${id}.png` })
+    console.log(`✓ 02-section-${id}.png`)
+  }
+
+  // 章內選穴 focus：胸章選 PC6 內關 → 面板 + 透視；再滾動應自動退出
+  await scrollToSection(page, 'chest', 7)
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
+  await page.getByText('內關').first().waitFor({ timeout: 5000 })
+  await page.getByText('PC6').first().waitFor({ timeout: 5000 })
+  await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
+  await settleFrames(page, 30)
+  await page.screenshot({ path: `${SHOT_DIR}03-point-xray.png` })
+  console.log('✓ 03-point-xray.png（面板含 內關/PC6）')
+
+  await page.evaluate(() => window.scrollBy({ top: 300 }))
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().selectedPointId === null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.waitForTimeout(1500) // 相機接回滾動軌道
+  await settleFrames(page, 30)
+  console.log('✓ focus 中滾動自動退出選穴，相機接回軌道')
+
+  // 終章 → 自由探索：MeridianList 出現、鏡頭回 HOME
+  await scrollToSection(page, 'finale', 13, 0.6)
+  await page.getByRole('button', { name: '進入自由探索' }).click()
+  await page.waitForSelector('body[data-qh-mode="free"]', { timeout: 5000 })
+  await page.waitForTimeout(1600)
+  await settleFrames(page, 30)
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
+  await page.waitForTimeout(900)
+  await settleFrames(page, 30)
+  await page.screenshot({ path: `${SHOT_DIR}04-free-meridian-lu.png` })
+  console.log('✓ 04-free-meridian-lu.png（自由探索 + 肺經）')
+
+  // Esc 復位
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(1200)
+  await settleFrames(page, 30)
+
+  // 銅人四方位截圖（美術迭代迴圈用；?az 直進 free 模式）
   for (const az of [0, 90, 180, 270]) {
     await page.goto(`${BASE}/?az=${az}`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
@@ -110,40 +190,10 @@ try {
     await page.screenshot({ path: `${SHOT_DIR}body-az${az}.png` })
     console.log(`✓ body-az${az}.png`)
   }
-
-  // 選經絡 / 選穴（以 store 驅動，避免脆弱的 3D 座標點擊）
-  // 沿用已進入的頁面，避免重載後 SwiftShader 重新編譯 shader 的黑幀
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
-  await page.getByRole('button', { name: '進入' }).click()
-  await page.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
-  await page.waitForTimeout(2800)
-  await settleFrames(page, 60)
-  await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
-  await page.waitForTimeout(900)
-  await settleFrames(page, 30)
-  await page.screenshot({ path: `${SHOT_DIR}03-meridian-lu.png` })
-  console.log('✓ 03-meridian-lu.png')
-
-  // 選 PC6 內關：面板應顯示穴名/代碼，身體透視、心包區發光
-  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
-  await page.getByText('內關').first().waitFor({ timeout: 5000 })
-  await page.getByText('PC6').first().waitFor({ timeout: 5000 })
-  await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
-  await settleFrames(page, 30)
-  await page.screenshot({ path: `${SHOT_DIR}04-point-xray.png` })
-  console.log('✓ 04-point-xray.png（面板含 內關/PC6）')
-
-  // Esc 復位
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(1600)
-  await settleFrames(page, 30)
-  await page.screenshot({ path: `${SHOT_DIR}05-reset.png` })
-  console.log('✓ 05-reset.png')
-
-  // ── 行動視口（390×844）── chip bar / 底部抽屜
-  // 先關桌機分頁：SwiftShader 下兩個 WebGL context 併行會互相餓死
   await page.close()
+
+  // ── 行動視口（390×844）── 底部文案卡 / 捲動 / 選穴抽屜
+  // SwiftShader 下兩個 WebGL context 併行會互相餓死，故桌機分頁已先關
   const mobile = await browser.newPage({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
@@ -154,13 +204,16 @@ try {
   })
   await mobile.goto(BASE, { waitUntil: 'domcontentloaded' })
   await mobile.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
-  await mobile.getByRole('button', { name: '進入' }).click()
-  await mobile.waitForSelector('body[data-qh-phase="explore"]', { timeout: 45000 })
   await mobile.waitForTimeout(2800)
   await settleFrames(mobile, 60)
-  await mobile.screenshot({ path: `${SHOT_DIR}06-mobile-explore.png` })
-  console.log('✓ 06-mobile-explore.png')
+  await mobile.screenshot({ path: `${SHOT_DIR}05-mobile-landing.png` })
+  console.log('✓ 05-mobile-landing.png')
 
+  await scrollToSection(mobile, 'face-front', 1)
+  await mobile.screenshot({ path: `${SHOT_DIR}06-mobile-section.png` })
+  console.log('✓ 06-mobile-section.png')
+
+  await scrollToSection(mobile, 'lower-limb', 11)
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
   await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
   await mobile.waitForTimeout(2200)

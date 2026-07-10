@@ -10,6 +10,7 @@ import { Organs } from './organs/Organs'
 import { MeridianLines } from './meridians/MeridianLines'
 import { AcupointMarkers } from './points/AcupointMarkers'
 import { PointTooltip } from './points/PointTooltip'
+import { SectionPointLabels } from './points/SectionPointLabels'
 
 /**
  * 首幀渲染後在 <body> 打標記 + 每 10 幀更新幀數計數，
@@ -30,11 +31,13 @@ function ReadyFlag() {
   return null
 }
 
-function PhaseFlag() {
-  const phase = useAppStore((s) => s.phase)
+function ModeFlag() {
+  const mode = useAppStore((s) => s.mode)
+  const sectionIndex = useAppStore((s) => s.sectionIndex)
   useEffect(() => {
-    document.body.dataset.qhPhase = phase
-  }, [phase])
+    document.body.dataset.qhMode = mode
+    document.body.dataset.qhSection = String(sectionIndex)
+  }, [mode, sectionIndex])
   return null
 }
 
@@ -48,10 +51,11 @@ export function Experience() {
       <MeridianLines />
       <AcupointMarkers />
       <PointTooltip />
+      <SectionPointLabels />
       <Effects />
       <DebugHelpers />
       <ReadyFlag />
-      <PhaseFlag />
+      <ModeFlag />
     </>
   )
 }
