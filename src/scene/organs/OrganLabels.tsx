@@ -6,16 +6,19 @@ import { ELEMENT_NAMES } from '@/lib/wuxing'
 import { useAppStore } from '@/store/useAppStore'
 
 /**
- * 臟腑名稱標籤：透視（選穴）時，為被點亮的臟腑浮現名稱＋五行。
- * 只標高亮的臟腑（通常 1–3 個）；相鄰臟腑（如心/心包）以
- * 索引奇偶交錯浮升高度避免互疊。
+ * 臟腑名稱標籤：透視時為被點亮的臟腑浮現名稱＋五行——點穴或
+ * 導覽 spotlight 都會觸發。只標高亮的臟腑（通常 1–3 個）；
+ * 相鄰臟腑（如心/心包）以索引奇偶交錯浮升高度避免互疊。
  */
 export function OrganLabels() {
   const xray = useAppStore((s) => s.xray)
+  const mode = useAppStore((s) => s.mode)
   const selectedPointId = useAppStore((s) => s.selectedPointId)
+  const spotlightPointId = useAppStore((s) => s.spotlightPointId)
 
-  if (!xray || !selectedPointId) return null
-  const organIds = ACUPOINT_MAP.get(selectedPointId)?.organIds ?? []
+  const focusId = selectedPointId ?? (mode === 'story' ? spotlightPointId : null)
+  if (!focusId || (selectedPointId && !xray)) return null
+  const organIds = ACUPOINT_MAP.get(focusId)?.organIds ?? []
   if (organIds.length === 0) return null
 
   return (

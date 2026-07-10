@@ -6,6 +6,7 @@ import type { Line2 } from 'three/addons/lines/Line2.js'
 import type { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { useMeridianCurves, type MeridianCurve } from './useMeridianCurves'
 import { useAppStore } from '@/store/useAppStore'
+import { ACUPOINT_MAP } from '@/data/acupoints'
 import { RENDER_ORDER } from '@/lib/constants'
 
 /**
@@ -24,9 +25,15 @@ function MeridianLine({ curve, index }: { curve: MeridianCurve; index: number })
   const entryStart = useRef<number | null>(null)
 
   useFrame(({ clock }, delta) => {
-    const { selectedMeridianId } = useAppStore.getState()
-    const active = selectedMeridianId === curve.meridianId
-    const anySelected = selectedMeridianId !== null
+    const { selectedMeridianId, selectedPointId, spotlightPointId, mode } = useAppStore.getState()
+    // 高亮經絡：手動選擇優先；導覽中未選擇則跟隨 spotlight 穴位所屬經絡
+    // （該經呈現「氣」流動、其餘暗化——與點穴 focus 同一套視覺）
+    let activeMeridianId = selectedMeridianId
+    if (!activeMeridianId && !selectedPointId && mode === 'story' && spotlightPointId) {
+      activeMeridianId = ACUPOINT_MAP.get(spotlightPointId)?.meridianId ?? null
+    }
+    const active = activeMeridianId === curve.meridianId
+    const anySelected = activeMeridianId !== null
 
     const solid = solidRef.current
     const dashed = dashedRef.current

@@ -75,17 +75,19 @@ body {
   position: sticky;
   top: 26vh;
 }
-/* landing / finale：置中構圖，不需要 sticky */
-.qh-section--landing,
-.qh-section--finale {
+/* landing：置中構圖，不需要 sticky（首屏即見）；
+   finale 維持 sticky——「自由探索」停在畫面上不被滾走 */
+.qh-section--landing {
   display: flex;
   align-items: center;
   min-height: 160vh;
   padding-top: 0;
 }
-.qh-section--landing .qh-section-card,
-.qh-section--finale .qh-section-card {
+.qh-section--landing .qh-section-card {
   position: static;
+}
+.qh-section--finale {
+  min-height: 150vh;
 }
 /* landing：文字靠左、銅人在右（pose 注視點左移），避免交疊 */
 .qh-section--landing {
@@ -651,38 +653,41 @@ body {
   color: var(--ink-dim);
 }
 
-/* ===== 視角方位指示器（左下角） ===== */
+/* ===== 視角方位指示器（上方正中，顯眼處） ===== */
 .qh-compass {
   position: absolute;
-  left: 22px;
-  bottom: 44px;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px 6px 10px;
-  background: rgba(14, 17, 23, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 9px;
+  padding: 7px 18px 7px 13px;
+  background: rgba(14, 17, 23, 0.68);
+  border: 1px solid var(--panel-line);
   border-radius: 99px;
   pointer-events: none;
 }
 .qh-compass-needle {
   display: inline-block;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   color: var(--gold);
   transition: transform 0.1s linear;
 }
 .qh-compass-label {
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  color: var(--ink-dim);
+  font-size: 13.5px;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  color: var(--ink);
 }
-/* 行動裝置：方位指示器移到左上，讓開底部 chip bar / 文案卡 */
 @media (max-width: 768px) {
   .qh-compass {
-    left: 12px;
-    bottom: auto;
-    top: 64px;
+    top: 12px;
+    padding: 5px 14px 5px 10px;
+  }
+  .qh-compass-label {
+    font-size: 12px;
   }
 }
 

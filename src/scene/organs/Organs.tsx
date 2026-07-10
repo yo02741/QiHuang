@@ -9,8 +9,8 @@ import { ACUPOINT_MAP } from '@/data/acupoints'
 import { RENDER_ORDER } from '@/lib/constants'
 
 /**
- * 臟腑：透視（xray）時浮現；被選穴位對應的臟腑高亮發光，
- * 其餘微光；三焦為抽象腔區，強度上限較低。
+ * 臟腑：透視時浮現；焦點穴位（點選或導覽 spotlight）對應的臟腑
+ * 高亮發光，其餘微光；三焦為抽象腔區，強度上限較低。
  */
 export function Organs() {
   const parts = useMemo(
@@ -25,18 +25,19 @@ export function Organs() {
   )
 
   useFrame((_, delta) => {
-    const { xray, selectedPointId } = useAppStore.getState()
-    const targetOrganIds = selectedPointId
-      ? (ACUPOINT_MAP.get(selectedPointId)?.organIds ?? [])
-      : []
+    const { xray, selectedPointId, spotlightPointId, mode } = useAppStore.getState()
+    // 焦點穴位：點選優先，導覽中未點選則跟隨 spotlight
+    const focusId = selectedPointId ?? (mode === 'story' ? spotlightPointId : null)
+    const seeThrough = xray || (mode === 'story' && focusId !== null)
+    const targetOrganIds = focusId ? (ACUPOINT_MAP.get(focusId)?.organIds ?? []) : []
 
     for (const p of parts) {
-      const highlighted = xray && targetOrganIds.includes(p.organId)
+      const highlighted = seeThrough && targetOrganIds.includes(p.organId)
       // 三焦/心包是包覆型薄殼，非高亮時完全隱藏以免畫面渾濁
       const isShell = p.organId === 'sanjiao' || p.organId === 'pericardium'
       const ceiling = p.organId === 'sanjiao' ? 1.2 : 2.5
-      const targetIntensity = highlighted ? ceiling : xray && !isShell ? 0.28 : 0
-      const targetOpacity = highlighted ? 0.9 : xray && !isShell ? 0.18 : 0
+      const targetIntensity = highlighted ? ceiling : seeThrough && !isShell ? 0.28 : 0
+      const targetOpacity = highlighted ? 0.9 : seeThrough && !isShell ? 0.18 : 0
 
       easing.damp(p.mat.uniforms.uIntensity, 'value', targetIntensity, 0.3, delta)
       easing.damp(p.mat.uniforms.uOpacity, 'value', targetOpacity, 0.3, delta)

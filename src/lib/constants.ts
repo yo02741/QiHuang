@@ -38,4 +38,5 @@ export const SCROLL = {
   focusExitPx: 80,    // focus 中累積滾動超過此值 → 自動退出選穴
 } as const
 
-export const BODY_OPACITY = { normal: 1.0, xray: 0.22, depthWriteThreshold: 0.6 } as const
+/** tour：導覽 spotlight 的半透視（比點穴 xray 淺，保留銅身形體） */
+export const BODY_OPACITY = { normal: 1.0, xray: 0.22, tour: 0.34, depthWriteThreshold: 0.6 } as const

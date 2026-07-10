@@ -9,15 +9,17 @@ import { BODY_OPACITY, COLORS, RENDER_ORDER, TIMING } from '@/lib/constants'
 export function BronzeMan() {
   const geometry = useMemo(() => buildBodyGeometry(), [])
   const matRef = useRef<MeshPhysicalMaterial>(null)
-  const xray = useAppStore((s) => s.xray)
 
   useFrame((_, delta) => {
     const mat = matRef.current
     if (!mat) return
+    const { xray, mode, selectedPointId, spotlightPointId } = useAppStore.getState()
+    // 導覽 spotlight：淺透視（銅身仍可辨），讓所應臟腑自動透出
+    const tourGhost = mode === 'story' && !selectedPointId && spotlightPointId !== null
     easing.damp(
       mat,
       'opacity',
-      xray ? BODY_OPACITY.xray : BODY_OPACITY.normal,
+      xray ? BODY_OPACITY.xray : tourGhost ? BODY_OPACITY.tour : BODY_OPACITY.normal,
       TIMING.bodyFade,
       delta,
     )
