@@ -27,6 +27,8 @@ interface AppState {
   scrollVelocity: number
   /** 當前章最新點亮的穴位（導覽 spotlight）；選穴時面板以 selectedPointId 優先 */
   spotlightPointId: string | null
+  /** 手機步進導覽的站點索引（StepNav 監聽並執行動畫/瞬移） */
+  tourStep: number
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
   selectedSymptomId: SymptomId | null   // 症狀反查（free 模式；與經絡/配穴互斥）
   selectedComboId: string | null        // 配穴組合（free 模式；與經絡/症狀互斥）
@@ -39,6 +41,8 @@ interface AppState {
   actions: {
     /** StorySections 的 scroll handler 專用（rAF 節流後呼叫） */
     setScroll(rawProgress: number, velocity: number): void
+    /** 手機步進導覽：跳到第 i 站（含 Header 回首頁 setTourStep(0)） */
+    setTourStep(i: number): void
     enterFree(): void
     enterStory(): void
     selectMeridian(id: MeridianId | null): void
@@ -61,6 +65,7 @@ export const useAppStore = create<AppState>()((set) => ({
   rawProgress: 0,
   scrollVelocity: 0,
   spotlightPointId: null,
+  tourStep: 0,
   selectedMeridianId: null,
   selectedSymptomId: null,
   selectedComboId: null,
@@ -80,6 +85,7 @@ export const useAppStore = create<AppState>()((set) => ({
         if (spotlightPointId !== s.spotlightPointId) patch.spotlightPointId = spotlightPointId
         return patch
       }),
+    setTourStep: (i) => set({ tourStep: i }),
     enterFree: () => set({ mode: 'free' }),
     enterStory: () =>
       set({

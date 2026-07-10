@@ -1044,6 +1044,16 @@ html {
   border-radius: 12px;
   cursor: pointer;
 }
+.qh-stepnav-btn {
+  transition: transform 0.12s var(--ease-out), background 0.12s, border-color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+/* click 回饋：按下縮放 + 金色閃亮 */
+.qh-stepnav-btn:active:not(:disabled) {
+  transform: scale(0.88);
+  background: rgba(227, 179, 65, 0.28);
+  border-color: var(--gold);
+}
 .qh-stepnav-btn:disabled {
   opacity: 0.3;
   cursor: default;

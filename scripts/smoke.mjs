@@ -412,6 +412,11 @@ try {
   await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })
   console.log('✓ 把手條收回迷你卡')
 
+  // 左上 logo 回首頁：跳回 landing（步進第 0 站，直達不繞章）
+  await mobile.locator('.qh-header-brand').click()
+  await mobile.getByRole('button', { name: /開始導覽/ }).waitFor({ timeout: 5000 })
+  console.log('✓ logo 回首頁（landing 疊層重現）')
+
   // 手機自由探索：探索 chip bar + 症狀反查 + 抽屜同框不重疊
   await mobile.evaluate(() => {
     const s = window.__QH_STORE.getState()

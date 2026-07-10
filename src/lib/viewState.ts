@@ -5,6 +5,8 @@
 export const viewState = {
   /** 相機繞主體的方位角（rad，未正規化） */
   azimuth: 0,
+  /** 步進導覽跳章：要求相機直接瞬移到目標姿勢（不做阻尼繞行）；CameraRig 消費後清除 */
+  snapCamera: false,
 }
 
 export type Facing = 'front' | 'left' | 'right' | 'back'

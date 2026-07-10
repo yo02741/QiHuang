@@ -209,6 +209,13 @@ export function CameraRig() {
       narrow ? TRANSITION_ENDS_NARROW : TRANSITION_ENDS,
     )
     const cur = current.current
+    // 步進導覽跳章：直接瞬移到目標姿勢，不做阻尼繞行（不掃過中間章節）
+    if (viewState.snapCamera) {
+      viewState.snapCamera = false
+      copyPose(target, cur)
+      drag.current.az = 0
+      drag.current.pol = 0
+    }
     const k = 1 - Math.exp(-delta / SCROLL.poseDamp)
     cur.azimuth += (target.azimuth - cur.azimuth) * k
     cur.polar += (target.polar - cur.polar) * k
