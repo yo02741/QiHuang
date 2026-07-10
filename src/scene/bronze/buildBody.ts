@@ -120,6 +120,12 @@ export function buildBodyGeometry(): BufferGeometry {
     geoms.push(head)
   }
 
+  // 五官線索（正反面辨識）：鼻＝面前小橢球；耳＝兩側壓扁橢球
+  geoms.push(ball(new Vector3(0, 1.572, 0.099), 1, new Vector3(0.013, 0.024, 0.016)))
+  for (const sx of [1, -1]) {
+    geoms.push(ball(new Vector3(sx * 0.082, 1.575, 0.002), 1, new Vector3(0.009, 0.03, 0.022)))
+  }
+
   geoms.push(...limbGeometries(false), ...limbGeometries(true))
 
   const merged = mergeGeometries(geoms, false)

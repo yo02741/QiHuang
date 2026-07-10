@@ -5,7 +5,7 @@
 import { MERIDIANS } from '../src/data/meridians'
 import { ACUPOINTS } from '../src/data/acupoints'
 import { ORGANS, ORGAN_MAP } from '../src/data/organs'
-import { STORY_SECTIONS } from '../src/data/sections'
+import { STORY_SECTIONS, TRANSITION_ENDS } from '../src/data/sections'
 import { resolveAnchor } from '../src/lib/anchors'
 import { pointsByRegion } from '../src/lib/regions'
 import { evaluatePose } from '../src/lib/cameraPath'
@@ -34,7 +34,7 @@ for (const o of ORGANS) {
 }
 
 // ── 穴位 ──
-if (ACUPOINTS.length !== 67) fail(`穴位應為 67 個，實際 ${ACUPOINTS.length}`)
+if (ACUPOINTS.length !== 100) fail(`穴位應為 100 個，實際 ${ACUPOINTS.length}`)
 const pointIds = new Set(ACUPOINTS.map((p) => p.id))
 if (pointIds.size !== ACUPOINTS.length) fail('穴位 id 重複')
 for (const p of ACUPOINTS) {
@@ -72,7 +72,7 @@ for (const p of ACUPOINTS) {
 }
 for (const m of MERIDIANS) {
   const n = perMeridian.get(m.id) ?? 0
-  if (n < 3 || n > 6) fail(`${m.id} 穴位數 ${n} 不在 3–6 範圍`)
+  if (n < 5 || n > 12) fail(`${m.id} 穴位數 ${n} 不在 5–12 範圍`)
 }
 
 // ── 滾動敘事章節（sections × regions × cameraPath）──
@@ -119,10 +119,10 @@ for (const m of MERIDIANS) {
     if (distance <= 0.3 || distance > 10) fail(`${s.id} distance ${distance} 超出 (0.3, 10]`)
   }
 
-  // evaluatePose 全程掃描：任意進度都能算出有限姿勢
+  // evaluatePose 全程掃描：任意進度都能算出有限姿勢（含每章自訂過渡比例）
   const poses = STORY_SECTIONS.map((s) => s.pose)
   for (let r = 0; r <= (STORY_SECTIONS.length - 1) * 8; r++) {
-    const p = evaluatePose(poses, r / 8)
+    const p = evaluatePose(poses, r / 8, TRANSITION_ENDS)
     if (![...p.target, p.azimuth, p.polar, p.distance].every(Number.isFinite)) {
       fail(`evaluatePose(${(r / 8).toFixed(3)}) 產出非有限數`)
       break
@@ -138,7 +138,7 @@ const bodySections = STORY_SECTIONS.filter((s) => s.pointIds.length > 0)
 console.log(
   `✓ 資料驗證通過：${MERIDIANS.length} 經絡、${ACUPOINTS.length} 穴位、${ORGANS.length} 臟腑；` +
     `所有 anchor（左右側）解析皆落在合理範圍；` +
-    `${STORY_SECTIONS.length} 個敘事章節（${bodySections.length} 個部位章）完整收錄 67 穴`,
+    `${STORY_SECTIONS.length} 個敘事章節（${bodySections.length} 個部位章）完整收錄 ${ACUPOINTS.length} 穴`,
 )
 console.log(
   '  章節分佈：' +

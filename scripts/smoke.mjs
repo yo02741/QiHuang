@@ -145,11 +145,17 @@ try {
     console.log(`✓ 02-section-${id}.png`)
   }
 
-  // 章內選穴 focus：胸章選 PC6 內關 → 面板 + 透視；再滾動應自動退出
+  // 導覽 spotlight：胸章停駐時，右側面板應連動顯示最新點亮的穴位
   await scrollToSection(page, 'chest', 7)
+  await page.waitForSelector('.qh-panel--tour', { timeout: 5000 })
+  console.log('✓ 導覽 spotlight 面板連動出現')
+
+  // 章內選穴 focus：選 PC6 內關 → 面板 + 透視 + 臟腑標籤；再滾動應自動退出
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
   await page.getByText('內關').first().waitFor({ timeout: 5000 })
   await page.getByText('PC6').first().waitFor({ timeout: 5000 })
+  await page.locator('.qh-organ-label-name', { hasText: '心包' }).first().waitFor({ timeout: 5000 })
+  console.log('✓ 臟腑名稱標籤浮現（心包）')
   await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
   await settleFrames(page, 30)
   await page.screenshot({ path: `${SHOT_DIR}03-point-xray.png` })
@@ -181,6 +187,12 @@ try {
   await page.keyboard.press('Escape')
   await page.waitForTimeout(1200)
   await settleFrames(page, 30)
+
+  //「重看導覽」：free → 回到滾動敘事頂部
+  await page.getByRole('button', { name: '重看導覽' }).click()
+  await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })
+  await page.waitForFunction(() => window.scrollY < 10, undefined, { timeout: 5000 })
+  console.log('✓ 重看導覽 → 回到滾動敘事頂部')
 
   // 銅人四方位截圖（美術迭代迴圈用；?az 直進 free 模式）
   for (const az of [0, 90, 180, 270]) {

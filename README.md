@@ -1,7 +1,7 @@
 # 岐黃 QiHuang — 3D 針灸銅人滾動敘事網站
 
 > 循經取穴・銅人明堂。以 Three.js 打造的中醫形象網站：一頁式滾動敘事，
-> 銅人隨捲動旋轉運鏡，從頭到足走完十二個部位章節、67 個代表穴位，終章開放自由探索。
+> 銅人隨捲動旋轉運鏡，從頭到足走完十二個部位章節、100 個代表穴位，終章開放自由探索。
 
 ![開場](docs/screenshots/01-landing.png)
 
@@ -28,7 +28,7 @@
   不需要 lenis / ScrollControls 等額外依賴
 - 相機軌道的 azimuth 存「連續實數（累計圈數）」：段間線性插值即作者指定的旋轉方向，
   天然避開最短角問題；章節資料（文案、pose、點亮順序）集中在 `src/data/sections.ts`
-- 67 穴的部位分類由 anchor 幾何推導（`src/lib/regions.ts`），`npm run validate:data`
+- 100 穴的部位分類由 anchor 幾何推導（`src/lib/regions.ts`），`npm run validate:data`
   斷言全覆蓋、軌道單調、與章節收錄一致
 
 ## 沒有 3D 建模師，銅人哪來的？

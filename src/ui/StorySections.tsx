@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { STORY_SECTIONS } from '@/data/sections'
+import { STORY_SECTIONS, sectionHeightVh } from '@/data/sections'
 import { SCROLL } from '@/lib/constants'
 import { useAppStore } from '@/store/useAppStore'
 
@@ -46,7 +46,8 @@ export function StorySections() {
       const { selectedPointId, actions } = useAppStore.getState()
       if (selectedPointId) {
         focusScrollAcc += Math.abs(deltaY)
-        if (focusScrollAcc > SCROLL.focusExitPx) actions.selectPoint(null)
+        // reset：連同經絡選取一併清掉，讓導覽 spotlight 無縫接手
+        if (focusScrollAcc > SCROLL.focusExitPx) actions.reset()
       } else {
         focusScrollAcc = 0
       }
@@ -86,7 +87,12 @@ export function StorySections() {
   return (
     <div className="qh-track" ref={trackRef}>
       {STORY_SECTIONS.map((s) => (
-        <section key={s.id} id={`sec-${s.id}`} className={`qh-section qh-section--${s.id}`}>
+        <section
+          key={s.id}
+          id={`sec-${s.id}`}
+          className={`qh-section qh-section--${s.id}`}
+          style={{ minHeight: `${sectionHeightVh(s)}vh` }}
+        >
           <div className="qh-section-card">
             <p className="qh-section-kicker">{s.kicker}</p>
             {s.id === 'landing' ? (

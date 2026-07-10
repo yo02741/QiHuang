@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Html } from '@react-three/drei'
-import { STORY_SECTIONS } from '@/data/sections'
+import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
 import { resolveAnchor } from '@/lib/anchors'
 import { useAppStore } from '@/store/useAppStore'
-import { DWELL_START } from '@/lib/cameraPath'
 
 /**
  * 滾動敘事的穴名標籤：只為「當前章的 labelIds」掛 drei <Html>
@@ -29,12 +28,14 @@ export function SectionPointLabels() {
         name: point.name,
         code: point.code,
         position: resolveAnchor(point.anchor, side).position,
-        threshold:
-          DWELL_START +
-          (1 - DWELL_START - 0.08) * (section.pointIds.indexOf(id) / section.pointIds.length),
+        threshold: lightThreshold(
+          sectionIndex,
+          section.pointIds.indexOf(id),
+          section.pointIds.length,
+        ),
       }
     })
-  }, [section])
+  }, [section, sectionIndex])
 
   const els = useRef<(HTMLDivElement | null)[]>([])
 

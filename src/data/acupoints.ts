@@ -1,7 +1,7 @@
 import type { Acupoint } from './types'
 
 /**
- * 67 個代表性穴位（每經 3–6 穴）。
+ * 100 個代表性穴位（每經 5–12 穴）。
  * location 為「示意」教育描述；anchor 為銅人身上的藝術示意位置。
  * 本資料僅供教育與文化展示用途，非醫療建議。
  */
@@ -36,6 +36,13 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['lung'],
   },
   {
+    id: 'LU10', meridianId: 'LU', name: '魚際', pinyin: 'Yújì', code: 'LU10',
+    anchor: { kind: 'limb', segment: 'hand', t: 0.5, angle: 2.6 },
+    location: '第一掌骨中點橈側，赤白肉際處。',
+    functions: ['清肺熱', '利咽喉', '治咳嗽失音'],
+    organIds: ['lung'],
+  },
+  {
     id: 'LU11', meridianId: 'LU', name: '少商', pinyin: 'Shàoshāng', code: 'LU11',
     anchor: { kind: 'limb', segment: 'hand', t: 0.95, angle: 2.6 },
     location: '拇指橈側，指甲角旁約一分處。',
@@ -57,6 +64,13 @@ export const ACUPOINTS: Acupoint[] = [
     location: '手背第一、二掌骨之間，第二掌骨橈側中點。',
     functions: ['疏風解表', '鎮痛開竅', '頭面諸疾之要穴', '孕婦慎用'],
     organIds: ['largeIntestine', 'lung'],
+  },
+  {
+    id: 'LI5', meridianId: 'LI', name: '陽溪', pinyin: 'Yángxī', code: 'LI5',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.97, angle: 0.6 },
+    location: '腕背橫紋橈側，拇指翹起時兩筋之間凹陷（鼻煙窩）處。',
+    functions: ['清熱散風', '舒筋利腕', '治腕痛頭痛'],
+    organIds: ['largeIntestine'],
   },
   {
     id: 'LI10', meridianId: 'LI', name: '手三里', pinyin: 'Shǒusānlǐ', code: 'LI10',
@@ -89,11 +103,32 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['stomach'],
   },
   {
+    id: 'ST4', meridianId: 'ST', name: '地倉', pinyin: 'Dìcāng', code: 'ST4',
+    anchor: { kind: 'head', polar: 1.78, az: 0.28 },
+    location: '口角旁約四分處。',
+    functions: ['祛風通絡', '治口眼歪斜', '止流涎'],
+    organIds: ['stomach'],
+  },
+  {
+    id: 'ST6', meridianId: 'ST', name: '頰車', pinyin: 'Jiáchē', code: 'ST6',
+    anchor: { kind: 'head', polar: 1.82, az: 0.85 },
+    location: '下頜角前上方約一橫指，咀嚼時咬肌隆起處。',
+    functions: ['祛風清熱', '開關通絡', '治牙痛面癱'],
+    organIds: ['stomach'],
+  },
+  {
     id: 'ST25', meridianId: 'ST', name: '天樞', pinyin: 'Tiānshū', code: 'ST25',
     anchor: { kind: 'torso', y: 1.02, az: 0.42 },
     location: '腹部，肚臍旁開二寸。',
     functions: ['調理腸胃', '理氣消滯', '大腸募穴'],
     organIds: ['largeIntestine', 'stomach'],
+  },
+  {
+    id: 'ST34', meridianId: 'ST', name: '梁丘', pinyin: 'Liángqiū', code: 'ST34',
+    anchor: { kind: 'limb', segment: 'thigh', t: 0.82, angle: 0.9 },
+    location: '髕骨外上緣上二寸。',
+    functions: ['胃經郄穴', '和胃止痛', '治急性胃痛膝腫'],
+    organIds: ['stomach'],
   },
   {
     id: 'ST36', meridianId: 'ST', name: '足三里', pinyin: 'Zúsānlǐ', code: 'ST36',
@@ -108,6 +143,13 @@ export const ACUPOINTS: Acupoint[] = [
     location: '小腿前外側，外踝尖上八寸，脛骨前緣外二橫指。',
     functions: ['祛濕化痰', '和胃降逆', '化痰要穴'],
     organIds: ['stomach', 'spleen'],
+  },
+  {
+    id: 'ST41', meridianId: 'ST', name: '解溪', pinyin: 'Jiěxī', code: 'ST41',
+    anchor: { kind: 'limb', segment: 'foot', t: 0.06, angle: 1.5 },
+    location: '踝關節前橫紋中央，兩肌腱之間凹陷處。',
+    functions: ['舒筋活絡', '清胃化痰', '治足踝腫痛'],
+    organIds: ['stomach'],
   },
   {
     id: 'ST44', meridianId: 'ST', name: '內庭', pinyin: 'Nèitíng', code: 'ST44',
@@ -131,6 +173,20 @@ export const ACUPOINTS: Acupoint[] = [
     location: '小腿內側，內踝尖上三寸，脛骨內側緣後方。',
     functions: ['肝脾腎三經交會', '健脾益血', '調肝補腎', '孕婦禁針'],
     organIds: ['spleen', 'liver', 'kidney'],
+  },
+  {
+    id: 'SP3', meridianId: 'SP', name: '太白', pinyin: 'Tàibái', code: 'SP3',
+    anchor: { kind: 'limb', segment: 'foot', t: 0.6, angle: 2.7 },
+    location: '足內側，第一蹠骨小頭後下方，赤白肉際處。',
+    functions: ['脾經原穴', '健脾化濕', '理氣和胃'],
+    organIds: ['spleen', 'stomach'],
+  },
+  {
+    id: 'SP8', meridianId: 'SP', name: '地機', pinyin: 'Dìjī', code: 'SP8',
+    anchor: { kind: 'limb', segment: 'calf', t: 0.32, angle: 2.9 },
+    location: '小腿內側，陰陵泉穴下三寸。',
+    functions: ['脾經郄穴', '健脾利濕', '調經止痛'],
+    organIds: ['spleen'],
   },
   {
     id: 'SP9', meridianId: 'SP', name: '陰陵泉', pinyin: 'Yīnlíngquán', code: 'SP9',
@@ -170,6 +226,13 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['heart'],
   },
   {
+    id: 'HT5', meridianId: 'HT', name: '通里', pinyin: 'Tōnglǐ', code: 'HT5',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.9, angle: 3.5 },
+    location: '腕橫紋上一寸，尺側腕屈肌腱橈側。',
+    functions: ['心經絡穴', '寧心安神', '治心悸舌強不語'],
+    organIds: ['heart', 'smallIntestine'],
+  },
+  {
     id: 'HT7', meridianId: 'HT', name: '神門', pinyin: 'Shénmén', code: 'HT7',
     anchor: { kind: 'limb', segment: 'forearm', t: 0.97, angle: 3.5 },
     location: '腕橫紋尺側端，尺側腕屈肌腱橈側凹陷處。',
@@ -200,6 +263,13 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['smallIntestine'],
   },
   {
+    id: 'SI6', meridianId: 'SI', name: '養老', pinyin: 'Yǎnglǎo', code: 'SI6',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.92, angle: -0.9 },
+    location: '前臂背面尺側，尺骨小頭橈側骨縫凹陷處。',
+    functions: ['小腸經郄穴', '清頭明目', '舒筋活絡'],
+    organIds: ['smallIntestine'],
+  },
+  {
     id: 'SI11', meridianId: 'SI', name: '天宗', pinyin: 'Tiānzōng', code: 'SI11',
     anchor: { kind: 'torso', y: 1.31, az: 2.45 },
     location: '肩胛部，肩胛岡下窩中央凹陷處。',
@@ -223,11 +293,46 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['bladder'],
   },
   {
+    id: 'BL2', meridianId: 'BL', name: '攢竹', pinyin: 'Cuánzhú', code: 'BL2',
+    anchor: { kind: 'head', polar: 1.24, az: 0.14 },
+    location: '眉頭凹陷處，眶上切跡處。',
+    functions: ['疏風明目', '治眉稜骨痛', '目赤流淚'],
+    organIds: ['bladder'],
+  },
+  {
+    id: 'BL10', meridianId: 'BL', name: '天柱', pinyin: 'Tiānzhù', code: 'BL10',
+    anchor: { kind: 'head', polar: 2.35, az: 2.85 },
+    location: '後髮際正中旁開一寸三分，斜方肌外緣凹陷處。',
+    functions: ['疏風通絡', '強筋骨', '治後頭痛項強'],
+    organIds: ['bladder'],
+  },
+  {
     id: 'BL13', meridianId: 'BL', name: '肺俞', pinyin: 'Fèishù', code: 'BL13',
     anchor: { kind: 'torso', y: 1.33, az: 2.95 },
     location: '背部，第三胸椎棘突下，旁開一寸半。',
     functions: ['肺之背俞穴', '宣肺解表', '止咳平喘'],
     organIds: ['lung', 'bladder'],
+  },
+  {
+    id: 'BL15', meridianId: 'BL', name: '心俞', pinyin: 'Xīnshù', code: 'BL15',
+    anchor: { kind: 'torso', y: 1.27, az: 2.95 },
+    location: '背部，第五胸椎棘突下，旁開一寸半。',
+    functions: ['心之背俞穴', '寧心安神', '調理氣血'],
+    organIds: ['heart', 'bladder'],
+  },
+  {
+    id: 'BL18', meridianId: 'BL', name: '肝俞', pinyin: 'Gānshù', code: 'BL18',
+    anchor: { kind: 'torso', y: 1.17, az: 2.95 },
+    location: '背部，第九胸椎棘突下，旁開一寸半。',
+    functions: ['肝之背俞穴', '疏肝利膽', '養血明目'],
+    organIds: ['liver', 'bladder'],
+  },
+  {
+    id: 'BL20', meridianId: 'BL', name: '脾俞', pinyin: 'Píshù', code: 'BL20',
+    anchor: { kind: 'torso', y: 1.1, az: 2.95 },
+    location: '背部，第十一胸椎棘突下，旁開一寸半。',
+    functions: ['脾之背俞穴', '健脾利濕', '益氣統血'],
+    organIds: ['spleen', 'bladder'],
   },
   {
     id: 'BL23', meridianId: 'BL', name: '腎俞', pinyin: 'Shènshù', code: 'BL23',
@@ -241,6 +346,13 @@ export const ACUPOINTS: Acupoint[] = [
     anchor: { kind: 'limb', segment: 'thigh', t: 0.97, angle: -1.5 },
     location: '膝後膕橫紋中點。',
     functions: ['腰背委中求', '舒筋通絡', '涼血解毒'],
+    organIds: ['bladder'],
+  },
+  {
+    id: 'BL57', meridianId: 'BL', name: '承山', pinyin: 'Chéngshān', code: 'BL57',
+    anchor: { kind: 'limb', segment: 'calf', t: 0.5, angle: -1.55 },
+    location: '小腿後面正中，腓腸肌兩肌腹之間凹陷頂端。',
+    functions: ['舒筋活絡', '治小腿轉筋', '調理痔疾'],
     organIds: ['bladder'],
   },
   {
@@ -274,11 +386,25 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['kidney'],
   },
   {
+    id: 'KI6', meridianId: 'KI', name: '照海', pinyin: 'Zhàohǎi', code: 'KI6',
+    anchor: { kind: 'limb', segment: 'foot', t: 0.07, angle: 3.0 },
+    location: '內踝尖下方凹陷處。',
+    functions: ['滋腎清熱', '利咽安神', '通陰蹻脈'],
+    organIds: ['kidney'],
+  },
+  {
     id: 'KI7', meridianId: 'KI', name: '復溜', pinyin: 'Fùliū', code: 'KI7',
     anchor: { kind: 'limb', segment: 'calf', t: 0.8, angle: 3.2 },
     location: '小腿內側，太溪穴直上二寸。',
     functions: ['補腎利水', '調節汗液', '治水腫盜汗'],
     organIds: ['kidney'],
+  },
+  {
+    id: 'KI10', meridianId: 'KI', name: '陰谷', pinyin: 'Yīngǔ', code: 'KI10',
+    anchor: { kind: 'limb', segment: 'calf', t: 0.02, angle: -2.7 },
+    location: '膝內側，膕橫紋內側端兩筋之間。',
+    functions: ['滋腎清熱', '利水消腫', '治膝股內側痛'],
+    organIds: ['kidney', 'bladder'],
   },
   {
     id: 'KI27', meridianId: 'KI', name: '俞府', pinyin: 'Shùfǔ', code: 'KI27',
@@ -297,11 +423,25 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['pericardium', 'heart'],
   },
   {
+    id: 'PC5', meridianId: 'PC', name: '間使', pinyin: 'Jiānshǐ', code: 'PC5',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.68, angle: 3.0 },
+    location: '前臂掌側，腕橫紋上三寸，兩筋之間。',
+    functions: ['寬胸和胃', '清心安神', '截瘧'],
+    organIds: ['pericardium', 'heart'],
+  },
+  {
     id: 'PC6', meridianId: 'PC', name: '內關', pinyin: 'Nèiguān', code: 'PC6',
     anchor: { kind: 'limb', segment: 'forearm', t: 0.75, angle: 3.0 },
     location: '前臂掌側，腕橫紋上二寸，兩筋之間。',
     functions: ['寧心安神', '和胃止嘔', '寬胸理氣', '心胸胃之要穴'],
     organIds: ['pericardium', 'heart', 'stomach'],
+  },
+  {
+    id: 'PC7', meridianId: 'PC', name: '大陵', pinyin: 'Dàlíng', code: 'PC7',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.98, angle: 3.0 },
+    location: '腕掌側橫紋中點，兩筋之間。',
+    functions: ['心包經原穴', '清心寧神', '和胃寬胸'],
+    organIds: ['pericardium', 'heart'],
   },
   {
     id: 'PC8', meridianId: 'PC', name: '勞宮', pinyin: 'Láogōng', code: 'PC8',
@@ -327,6 +467,20 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['sanjiao'],
   },
   {
+    id: 'TE3', meridianId: 'TE', name: '中渚', pinyin: 'Zhōngzhǔ', code: 'TE3',
+    anchor: { kind: 'limb', segment: 'hand', t: 0.42, angle: 0.1 },
+    location: '手背第四、五掌骨間，掌指關節後方凹陷處。',
+    functions: ['清熱通絡', '開竅益聰', '治耳鳴頭痛'],
+    organIds: ['sanjiao'],
+  },
+  {
+    id: 'TE4', meridianId: 'TE', name: '陽池', pinyin: 'Yángchí', code: 'TE4',
+    anchor: { kind: 'limb', segment: 'forearm', t: 0.985, angle: 0.0 },
+    location: '腕背橫紋中，指總伸肌腱尺側凹陷處。',
+    functions: ['三焦經原穴', '清熱通絡', '益陰增液'],
+    organIds: ['sanjiao'],
+  },
+  {
     id: 'TE5', meridianId: 'TE', name: '外關', pinyin: 'Wàiguān', code: 'TE5',
     anchor: { kind: 'limb', segment: 'forearm', t: 0.75, angle: 0.0 },
     location: '前臂背側，腕背橫紋上二寸，兩骨之間（與內關相對）。',
@@ -339,6 +493,13 @@ export const ACUPOINTS: Acupoint[] = [
     location: '前臂背側，腕背橫紋上三寸，兩骨之間。',
     functions: ['清熱通便', '理氣止痛', '便祕要穴'],
     organIds: ['sanjiao', 'largeIntestine'],
+  },
+  {
+    id: 'TE14', meridianId: 'TE', name: '肩髎', pinyin: 'Jiānliáo', code: 'TE14',
+    anchor: { kind: 'limb', segment: 'upperArm', t: 0.12, angle: -0.35 },
+    location: '肩峰後下方，臂外展時呈凹陷處。',
+    functions: ['祛風濕', '通經絡', '治肩臂痛不能舉'],
+    organIds: ['sanjiao'],
   },
   {
     id: 'TE17', meridianId: 'TE', name: '翳風', pinyin: 'Yìfēng', code: 'TE17',
@@ -364,6 +525,13 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['gallbladder'],
   },
   {
+    id: 'GB8', meridianId: 'GB', name: '率谷', pinyin: 'Shuàigǔ', code: 'GB8',
+    anchor: { kind: 'head', polar: 0.9, az: 1.15 },
+    location: '耳尖直上，入髮際一寸半處。',
+    functions: ['平肝熄風', '清熱止痛', '治偏頭痛'],
+    organIds: ['gallbladder'],
+  },
+  {
     id: 'GB20', meridianId: 'GB', name: '風池', pinyin: 'Fēngchí', code: 'GB20',
     anchor: { kind: 'head', polar: 2.2, az: 2.35 },
     location: '枕骨之下，胸鎖乳突肌與斜方肌上端之間凹陷處。',
@@ -385,11 +553,25 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['gallbladder', 'bladder'],
   },
   {
+    id: 'GB31', meridianId: 'GB', name: '風市', pinyin: 'Fēngshì', code: 'GB31',
+    anchor: { kind: 'limb', segment: 'thigh', t: 0.5, angle: 0.15 },
+    location: '大腿外側正中，直立垂手時中指尖所指處。',
+    functions: ['祛風化濕', '通經活絡', '治下肢痿痺搔癢'],
+    organIds: ['gallbladder'],
+  },
+  {
     id: 'GB34', meridianId: 'GB', name: '陽陵泉', pinyin: 'Yánglíngquán', code: 'GB34',
     anchor: { kind: 'limb', segment: 'calf', t: 0.12, angle: 0.35 },
     location: '小腿外側，腓骨小頭前下方凹陷處。',
     functions: ['筋會陽陵', '舒筋壯筋', '清利肝膽'],
     organIds: ['gallbladder', 'liver'],
+  },
+  {
+    id: 'GB39', meridianId: 'GB', name: '懸鐘', pinyin: 'Xuánzhōng', code: 'GB39',
+    anchor: { kind: 'limb', segment: 'calf', t: 0.85, angle: 0.35 },
+    location: '外踝尖上三寸，腓骨前緣。',
+    functions: ['髓會懸鐘', '益髓壯骨', '治項強落枕'],
+    organIds: ['gallbladder'],
   },
   {
     id: 'GB41', meridianId: 'GB', name: '足臨泣', pinyin: 'Zúlínqì', code: 'GB41',
@@ -422,6 +604,20 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['liver'],
   },
   {
+    id: 'LR5', meridianId: 'LR', name: '蠡溝', pinyin: 'Lígōu', code: 'LR5',
+    anchor: { kind: 'limb', segment: 'calf', t: 0.6, angle: 2.95 },
+    location: '內踝尖上五寸，脛骨內側面中央。',
+    functions: ['肝經絡穴', '疏肝理氣', '調經利濕'],
+    organIds: ['liver', 'gallbladder'],
+  },
+  {
+    id: 'LR13', meridianId: 'LR', name: '章門', pinyin: 'Zhāngmén', code: 'LR13',
+    anchor: { kind: 'torso', y: 1.06, az: 1.4 },
+    location: '側腹部，第十一肋游離端下方。',
+    functions: ['脾之募穴・臟會', '疏肝健脾', '化積消脹'],
+    organIds: ['liver', 'spleen'],
+  },
+  {
     id: 'LR14', meridianId: 'LR', name: '期門', pinyin: 'Qīmén', code: 'LR14',
     anchor: { kind: 'torso', y: 1.18, az: 0.55 },
     location: '胸部，乳頭直下，第六肋間隙處。',
@@ -445,6 +641,13 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['kidney'],
   },
   {
+    id: 'CV8', meridianId: 'CV', name: '神闕', pinyin: 'Shénquè', code: 'CV8',
+    anchor: { kind: 'torso', y: 1.02, az: 0 },
+    location: '臍窩正中。',
+    functions: ['溫陽固脫', '健運脾胃', '禁針宜灸'],
+    organIds: ['spleen', 'kidney'],
+  },
+  {
     id: 'CV12', meridianId: 'CV', name: '中脘', pinyin: 'Zhōngwǎn', code: 'CV12',
     anchor: { kind: 'torso', y: 1.13, az: 0 },
     location: '上腹部，前正中線上，臍上四寸。',
@@ -466,7 +669,22 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['heart'],
   },
 
+  {
+    id: 'CV22', meridianId: 'CV', name: '天突', pinyin: 'Tiāntū', code: 'CV22',
+    anchor: { kind: 'torso', y: 1.42, az: 0 },
+    location: '頸前部，胸骨上窩正中凹陷處。',
+    functions: ['宣肺化痰', '利咽開音', '治咳喘咽腫'],
+    organIds: ['lung'],
+  },
+
   // ── 督脈 GV ──
+  {
+    id: 'GV3', meridianId: 'GV', name: '腰陽關', pinyin: 'Yāoyángguān', code: 'GV3',
+    anchor: { kind: 'torso', y: 0.98, az: 3.14 },
+    location: '腰部，後正中線上，第四腰椎棘突下凹陷處。',
+    functions: ['祛寒除濕', '強腰膝', '治腰骶痛下肢痿痺'],
+    organIds: ['kidney'],
+  },
   {
     id: 'GV4', meridianId: 'GV', name: '命門', pinyin: 'Mìngmén', code: 'GV4',
     anchor: { kind: 'torso', y: 1.02, az: 3.14 },
@@ -475,11 +693,25 @@ export const ACUPOINTS: Acupoint[] = [
     organIds: ['kidney'],
   },
   {
+    id: 'GV9', meridianId: 'GV', name: '至陽', pinyin: 'Zhìyáng', code: 'GV9',
+    anchor: { kind: 'torso', y: 1.22, az: 3.13 },
+    location: '背部，後正中線上，第七胸椎棘突下凹陷處。',
+    functions: ['利膽退黃', '寬胸利膈', '治胸脅脹痛'],
+    organIds: ['liver', 'gallbladder'],
+  },
+  {
     id: 'GV14', meridianId: 'GV', name: '大椎', pinyin: 'Dàzhuī', code: 'GV14',
     anchor: { kind: 'torso', y: 1.42, az: 3.12 },
     location: '後正中線上，第七頸椎棘突下凹陷處。',
     functions: ['諸陽之會', '解表清熱', '振奮陽氣'],
     organIds: ['lung'],
+  },
+  {
+    id: 'GV15', meridianId: 'GV', name: '啞門', pinyin: 'Yǎmén', code: 'GV15',
+    anchor: { kind: 'head', polar: 2.45, az: 3.08 },
+    location: '後髮際正中直上五分，第一頸椎下。',
+    functions: ['開音通竅', '清神志', '治舌強不語'],
+    organIds: [],
   },
   {
     id: 'GV16', meridianId: 'GV', name: '風府', pinyin: 'Fēngfǔ', code: 'GV16',

@@ -6,33 +6,44 @@ import { useAppStore } from '@/store/useAppStore'
 
 /**
  * 詳情面板（桌機右側滑入；行動裝置為底部抽屜）：
- * 選穴 → 穴位詳情；僅選經絡 → 經絡簡介 + 該經穴位列表。
+ * 選穴 → 穴位詳情；僅選經絡（自由探索）→ 經絡簡介 + 該經穴位列表。
+ * 滾動敘事中未選穴時，以「導覽 spotlight」連動顯示最新點亮的穴位
+ * （僅桌機；不觸發透視與運鏡）。
  */
 export function PointPanel() {
+  const mode = useAppStore((s) => s.mode)
   const selectedPointId = useAppStore((s) => s.selectedPointId)
+  const spotlightPointId = useAppStore((s) => s.spotlightPointId)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
   const { selectPoint, selectMeridian } = useAppStore((s) => s.actions)
 
-  const point = selectedPointId ? ACUPOINT_MAP.get(selectedPointId) : null
+  // 導覽 spotlight：story 模式未選穴時，面板跟著點亮進度走
+  const tour = mode === 'story' && !selectedPointId && Boolean(spotlightPointId)
+  const effectiveId = selectedPointId ?? (tour ? spotlightPointId : null)
+
+  const point = effectiveId ? ACUPOINT_MAP.get(effectiveId) : null
   const meridian = point
     ? MERIDIAN_MAP.get(point.meridianId)
     : selectedMeridianId
       ? MERIDIAN_MAP.get(selectedMeridianId)
       : null
 
-  const open = Boolean(point || meridian)
+  // story 模式不顯示「僅經絡」面板（經絡選單屬於自由探索）
+  const open = Boolean(point || (meridian && mode === 'free'))
   if (!open) return null
 
   return (
-    <aside className="qh-panel" aria-live="polite">
-      <button
-        type="button"
-        className="qh-panel-close"
-        aria-label="關閉"
-        onClick={() => (point ? selectPoint(null) : selectMeridian(null))}
-      >
-        ×
-      </button>
+    <aside className={`qh-panel ${tour ? 'qh-panel--tour' : ''}`} aria-live="polite">
+      {!tour && (
+        <button
+          type="button"
+          className="qh-panel-close"
+          aria-label="關閉"
+          onClick={() => (point ? selectPoint(null) : selectMeridian(null))}
+        >
+          ×
+        </button>
+      )}
 
       {point && meridian ? (
         <>

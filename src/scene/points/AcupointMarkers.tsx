@@ -4,10 +4,9 @@ import { useCursor } from '@react-three/drei'
 import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
 import { ACUPOINTS } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
-import { STORY_SECTIONS } from '@/data/sections'
+import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 import { resolveAnchor, type Side } from '@/lib/anchors'
 import { useAppStore } from '@/store/useAppStore'
-import { DWELL_START } from '@/lib/cameraPath'
 import { RENDER_ORDER } from '@/lib/constants'
 import type { MeridianId } from '@/data/types'
 
@@ -21,7 +20,7 @@ import type { MeridianId } from '@/data/types'
  * 「一顆顆亮起」的節奏。點亮門檻公式與 SectionPointLabels 一致。
  */
 
-/** pointId → 所屬章節與點亮順序（門檻 = DWELL_START 起依序鋪在停駐段） */
+/** pointId → 所屬章節與點亮門檻（lightThreshold 與標籤共用同一公式） */
 const SECTION_LIGHT = new Map<string, { section: number; threshold: number }>()
 /** 無穴位的章節（landing / finale）：全部標記回休止金，不做暗化 */
 const NEUTRAL_SECTIONS = new Set<number>()
@@ -30,7 +29,7 @@ STORY_SECTIONS.forEach((s, si) => {
   s.pointIds.forEach((id, oi) => {
     SECTION_LIGHT.set(id, {
       section: si,
-      threshold: DWELL_START + (1 - DWELL_START - 0.08) * (oi / s.pointIds.length),
+      threshold: lightThreshold(si, oi, s.pointIds.length),
     })
   })
 })

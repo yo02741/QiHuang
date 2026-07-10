@@ -1,7 +1,20 @@
 import { create } from 'zustand'
 import type { MeridianId } from '@/data/types'
+import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 
 export type Mode = 'story' | 'free'
+
+/** 滾動進度 → 當前章「最新點亮」的穴位（導覽 spotlight，連動詳情面板） */
+function spotlightAt(rawProgress: number): string | null {
+  const si = Math.floor(rawProgress)
+  const section = STORY_SECTIONS[si]
+  if (!section || section.pointIds.length === 0) return null
+  const p = rawProgress - si
+  for (let i = section.pointIds.length - 1; i >= 0; i--) {
+    if (p >= lightThreshold(si, i, section.pointIds.length)) return section.pointIds[i]
+  }
+  return null
+}
 
 interface AppState {
   /** story = 滾動敘事（預設）；free = 自由探索（原 orbit 互動） */
@@ -12,6 +25,8 @@ interface AppState {
   rawProgress: number
   /** 滾動速度 px/s（transient，微互動衰減與 focus 退出判定用） */
   scrollVelocity: number
+  /** 當前章最新點亮的穴位（導覽 spotlight）；選穴時面板以 selectedPointId 優先 */
+  spotlightPointId: string | null
   selectedMeridianId: MeridianId | null // null = 顯示全部經絡
   selectedPointId: string | null        // 有值 ⇒ 透視模式 + 相機 focus
   selectedSide: 'L' | 'R'               // 鏡頭聚焦在被點選的那一側
@@ -41,6 +56,7 @@ export const useAppStore = create<AppState>()((set) => ({
   sectionIndex: 0,
   rawProgress: 0,
   scrollVelocity: 0,
+  spotlightPointId: null,
   selectedMeridianId: null,
   selectedPointId: null,
   selectedSide: 'L',
@@ -52,9 +68,11 @@ export const useAppStore = create<AppState>()((set) => ({
     setScroll: (rawProgress, velocity) =>
       set((s) => {
         const sectionIndex = Math.floor(rawProgress)
-        return sectionIndex === s.sectionIndex
-          ? { rawProgress, scrollVelocity: velocity }
-          : { rawProgress, scrollVelocity: velocity, sectionIndex }
+        const spotlightPointId = spotlightAt(rawProgress)
+        const patch: Partial<AppState> = { rawProgress, scrollVelocity: velocity }
+        if (sectionIndex !== s.sectionIndex) patch.sectionIndex = sectionIndex
+        if (spotlightPointId !== s.spotlightPointId) patch.spotlightPointId = spotlightPointId
+        return patch
       }),
     enterFree: () => set({ mode: 'free' }),
     enterStory: () =>

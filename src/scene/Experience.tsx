@@ -7,6 +7,7 @@ import { CameraRig } from './CameraRig'
 import { BronzeMan } from './bronze/BronzeMan'
 import { DebugHelpers } from './bronze/DebugHelpers'
 import { Organs } from './organs/Organs'
+import { OrganLabels } from './organs/OrganLabels'
 import { MeridianLines } from './meridians/MeridianLines'
 import { AcupointMarkers } from './points/AcupointMarkers'
 import { PointTooltip } from './points/PointTooltip'
@@ -52,6 +53,7 @@ export function Experience() {
       <AcupointMarkers />
       <PointTooltip />
       <SectionPointLabels />
+      <OrganLabels />
       <Effects />
       <DebugHelpers />
       <ReadyFlag />

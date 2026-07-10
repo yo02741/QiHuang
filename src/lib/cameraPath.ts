@@ -38,14 +38,22 @@ export function lerpPose(a: CameraPose, b: CameraPose, t: number): CameraPose {
   }
 }
 
-/** rawProgress ∈ [0, poses.length-1]（超界自動 clamp）→ 插值後姿勢 */
-export function evaluatePose(poses: readonly CameraPose[], rawProgress: number): CameraPose {
+/**
+ * rawProgress ∈ [0, poses.length-1]（超界自動 clamp）→ 插值後姿勢。
+ * transitionEnds：各段過渡結束的進度比例（省略時全段用 DWELL_START）。
+ */
+export function evaluatePose(
+  poses: readonly CameraPose[],
+  rawProgress: number,
+  transitionEnds?: readonly number[],
+): CameraPose {
   const last = poses.length - 1
   const raw = Math.min(Math.max(rawProgress, 0), last + 0.999)
   const i = Math.min(Math.floor(raw), last)
   if (i === 0) return poses[0]
   const u = raw - i
-  const t = smoothstep(Math.min(u / DWELL_START, 1))
+  const end = transitionEnds?.[i] ?? DWELL_START
+  const t = smoothstep(Math.min(u / end, 1))
   return lerpPose(poses[i - 1], poses[i], t)
 }
 

@@ -64,16 +64,28 @@ body {
   z-index: 5;
   pointer-events: none;
 }
+/* 文字卡 sticky：標題停駐到該章穴位全部點亮（章節高度由穴位數決定，
+   見 sections.ts sectionHeightVh），捲到章底才被推走 */
 .qh-section {
-  display: flex;
-  align-items: center;
+  position: relative;
   min-height: 130vh;
-  padding: 0 6vw;
+  padding: 34vh 6vw 10vh;
 }
-/* landing / finale 稍長，給運鏡與停留多一點空間 */
+.qh-section-card {
+  position: sticky;
+  top: 26vh;
+}
+/* landing / finale：置中構圖，不需要 sticky */
 .qh-section--landing,
 .qh-section--finale {
+  display: flex;
+  align-items: center;
   min-height: 160vh;
+  padding-top: 0;
+}
+.qh-section--landing .qh-section-card,
+.qh-section--finale .qh-section-card {
+  position: static;
 }
 .qh-section--landing {
   justify-content: center;
@@ -83,12 +95,12 @@ body {
   pointer-events: auto;
   max-width: 25em;
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+  translate: 0 28px;
+  transition: opacity 0.9s var(--ease-out), translate 0.9s var(--ease-out);
 }
 .qh-section-card.is-inview {
   opacity: 1;
-  transform: none;
+  translate: none;
 }
 .qh-section-kicker {
   margin: 0 0 6px;
@@ -184,10 +196,19 @@ body {
   opacity: 1;
   transform: none;
 }
+/* header 本體不擋事件（fixed 橫幅）；顯示時只有品牌鈕與導覽鈕可點 */
+.qh-header.is-visible .qh-header-brand,
+.qh-header.is-visible .qh-header-story {
+  pointer-events: auto;
+}
 .qh-header-brand {
   display: flex;
   align-items: baseline;
   gap: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 .qh-header-logo {
   font-family: var(--font-display);
@@ -319,6 +340,11 @@ body {
     opacity: 0;
     transform: translateX(24px);
   }
+}
+/* 導覽 spotlight 變體：稍收斂的存在感，不搶敘事主角 */
+.qh-panel--tour {
+  background: rgba(14, 17, 23, 0.72);
+  border-color: rgba(227, 179, 65, 0.16);
 }
 .qh-panel-close {
   position: absolute;
@@ -467,12 +493,14 @@ body {
 @media (max-width: 768px) {
   /* 文案卡下沉到畫面下緣（銅人讓出上半屏），漸層保可讀性 */
   .qh-section {
-    align-items: flex-end;
-    padding: 0 22px 12vh;
+    padding: 58vh 22px 8vh;
+  }
+  .qh-section-card {
+    top: 52vh;
   }
   .qh-section--landing {
     align-items: center;
-    padding-bottom: 0;
+    padding: 0 22px;
   }
   .qh-section-card {
     max-width: none;
@@ -525,6 +553,11 @@ body {
     font-size: 12.5px;
   }
   .qh-meridian-element {
+    display: none;
+  }
+
+  /* 導覽 spotlight 面板僅桌機顯示（手機下緣已有文案卡） */
+  .qh-panel--tour {
     display: none;
   }
 
@@ -589,6 +622,37 @@ body {
 .qh-point-label-code {
   font-size: 10px;
   letter-spacing: 0.04em;
+  color: var(--ink-dim);
+}
+
+/* ===== 臟腑名稱標籤（透視時浮現） ===== */
+.qh-organ-label {
+  --qh-label-lift: -28px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 10px;
+  background: rgba(14, 17, 23, 0.78);
+  border: 1px solid var(--panel-line);
+  border-radius: 3px;
+  white-space: nowrap;
+  transform: translateY(var(--qh-label-lift));
+  animation: qh-organ-label-in 0.6s var(--ease-out);
+}
+@keyframes qh-organ-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--qh-label-lift) + 8px));
+  }
+}
+.qh-organ-label-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.qh-organ-label-meta {
+  font-size: 10.5px;
   color: var(--ink-dim);
 }
 

@@ -6,7 +6,7 @@ import { Vector3 } from 'three'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { resolveAnchor } from '@/lib/anchors'
-import { SECTION_POSES } from '@/data/sections'
+import { SECTION_POSES, TRANSITION_ENDS } from '@/data/sections'
 import {
   copyPose,
   evaluatePose,
@@ -35,6 +35,8 @@ const { ACTION } = CameraControlsImpl
 function setInputLocked(controls: CameraControlsImpl, locked: boolean) {
   controls.mouseButtons.left = locked ? ACTION.NONE : ACTION.ROTATE
   controls.mouseButtons.wheel = locked ? ACTION.NONE : ACTION.DOLLY
+  // 自由探索右鍵：螢幕面 xy 平移（不旋轉、不改距離）
+  controls.mouseButtons.right = locked ? ACTION.NONE : ACTION.TRUCK
   controls.touches.one = locked ? ACTION.NONE : ACTION.TOUCH_ROTATE
   controls.touches.two = locked ? ACTION.NONE : ACTION.TOUCH_DOLLY_TRUCK
 }
@@ -73,7 +75,11 @@ export function CameraRig() {
     if (!controls) return
     controls.getPosition(camPos.current)
     controls.getTarget(camTgt.current)
-    const refAz = evaluatePose(SECTION_POSES, useAppStore.getState().rawProgress).azimuth
+    const refAz = evaluatePose(
+      SECTION_POSES,
+      useAppStore.getState().rawProgress,
+      TRANSITION_ENDS,
+    ).azimuth
     const pose = extractPose(
       [camPos.current.x, camPos.current.y, camPos.current.z],
       [camTgt.current.x, camTgt.current.y, camTgt.current.z],
@@ -90,7 +96,6 @@ export function CameraRig() {
   useEffect(() => {
     const controls = ref.current
     if (!controls) return
-    controls.mouseButtons.right = ACTION.NONE // 不提供平移，保持構圖
     controls.touches.three = ACTION.NONE
     setLimits(controls, mode === 'story')
     setInputLocked(controls, mode === 'story')
@@ -137,7 +142,7 @@ export function CameraRig() {
     let basePol = 0
     const onDown = (e: PointerEvent) => {
       const s = useAppStore.getState()
-      if (s.mode !== 'story' || s.selectedPointId || e.button !== 0) return
+      if (s.mode !== 'story' || e.button !== 0) return
       startX = e.clientX
       startY = e.clientY
       baseAz = drag.current.az
@@ -181,9 +186,10 @@ export function CameraRig() {
     const controls = ref.current
     if (!controls) return
     const s = useAppStore.getState()
-    if (s.mode !== 'story' || s.selectedPointId) return
+    // story 選穴不飛相機（維持滾動視角），迴圈持續運轉
+    if (s.mode !== 'story') return
 
-    const target = evaluatePose(SECTION_POSES, s.rawProgress)
+    const target = evaluatePose(SECTION_POSES, s.rawProgress, TRANSITION_ENDS)
     const cur = current.current
     const k = 1 - Math.exp(-delta / SCROLL.poseDamp)
     cur.azimuth += (target.azimuth - cur.azimuth) * k
@@ -223,12 +229,13 @@ export function CameraRig() {
     )
   })
 
-  // 點穴聚焦 / 取消復位（story：接回滾動軌道；free：回 HOME）
+  // 點穴聚焦 / 取消復位（僅自由探索：story 模式選穴不動相機，維持敘事視角）
   useEffect(
     () =>
       useAppStore.subscribe((s, prev) => {
         if (s.selectedPointId === prev.selectedPointId && s.selectedSide === prev.selectedSide)
           return
+        if (s.mode === 'story') return
         const controls = ref.current
         if (!controls) return
         const token = ++transitionToken.current
@@ -251,9 +258,6 @@ export function CameraRig() {
           void controls.setLookAt(cam.x, cam.y, cam.z, p.x, p.y, p.z, true).then(() => {
             if (token !== transitionToken.current) return
           })
-        } else if (s.mode === 'story') {
-          // 取消選穴：把實際姿勢反解回阻尼姿勢，useFrame 迴圈自動平滑接回
-          syncCurrentFromControls()
         } else {
           void controls.setLookAt(...CAMERA_POSES.HOME, true)
         }
