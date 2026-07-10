@@ -294,6 +294,20 @@ try {
   await settleFrames(mobile, 30)
   await shoot(mobile, `${SHOT_DIR}09-mobile-panel.png`)
   console.log('✓ 09-mobile-panel.png（抽屜含 足三里）')
+
+  // 手機自由探索：探索 chip bar + 症狀反查 + 抽屜同框不重疊
+  await mobile.evaluate(() => {
+    const s = window.__QH_STORE.getState()
+    s.actions.selectPoint(null)
+    s.actions.enterFree()
+  })
+  await mobile.waitForSelector('body[data-qh-mode="free"]', { timeout: 5000 })
+  await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectSymptom('headache'))
+  await mobile.getByText('相關穴位').first().waitFor({ timeout: 5000 })
+  await mobile.waitForTimeout(1500)
+  await settleFrames(mobile, 30)
+  await shoot(mobile, `${SHOT_DIR}10-mobile-free.png`)
+  console.log('✓ 10-mobile-free.png（手機自由探索・症狀反查）')
   await mobile.close()
 
   if (errors.length) {
