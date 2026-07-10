@@ -62,17 +62,17 @@ html {
   background: rgba(227, 179, 65, 0.55);
 }
 /* 面板內捲軸更細 */
-.qh-panel::-webkit-scrollbar,
+.qh-panel-body::-webkit-scrollbar,
 .qh-meridians::-webkit-scrollbar {
   width: 5px;
 }
-.qh-panel::-webkit-scrollbar-thumb,
+.qh-panel-body::-webkit-scrollbar-thumb,
 .qh-meridians::-webkit-scrollbar-thumb {
   border: none;
   border-radius: 3px;
   background: rgba(227, 179, 65, 0.25);
 }
-.qh-panel,
+.qh-panel-body,
 .qh-meridians {
   scrollbar-color: rgba(227, 179, 65, 0.25) transparent;
 }
@@ -427,20 +427,28 @@ html {
   color: var(--ink-dim);
 }
 
-/* ===== 詳情面板 ===== */
+/* ===== 詳情面板（外框固定；內容在 .qh-panel-body 獨立捲動） ===== */
 .qh-panel {
   position: absolute;
   top: 76px;
   right: 22px;
   bottom: 56px;
   width: min(330px, calc(100vw - 44px));
-  padding: 22px 22px 18px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--panel-bg);
   border: 1px solid var(--panel-line);
   border-radius: 10px;
   backdrop-filter: blur(10px);
   animation: qh-slide-in 0.45s var(--ease-out);
+}
+.qh-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* 內捲動不外溢，也不讓頁面捲動被劫持 */
+  padding: 22px 22px 18px;
   scrollbar-width: thin;
 }
 @keyframes qh-slide-in {
@@ -685,8 +693,11 @@ html {
   /* 手機 landing：銅人上半屏、文字佔首屏下半（維持置中大標，非頂部條） */
   .qh-section--landing {
     align-items: flex-start;
-    padding: 48vh 22px 0;
+    padding: 57vh 22px 0;
     text-align: center;
+  }
+  .qh-section--landing .qh-section-title--landing {
+    font-size: clamp(48px, 15vw, 72px);
   }
   .qh-section--landing .qh-section-card {
     margin: 0 auto;
@@ -766,7 +777,7 @@ html {
     display: none;
   }
 
-  /* 詳情面板 → 底部迷你卡（預設收合不擋小金人；把手條固定卡片頂緣兩態切換）。
+  /* 詳情面板 → 底部迷你卡（預設收合不擋小金人）。
      導覽（story）貼近底緣；自由探索讓開底部下拉選單列 */
   .qh-panel {
     top: auto;
@@ -775,16 +786,20 @@ html {
     bottom: 92px;
     width: auto;
     max-height: 62vh;
-    padding: 26px 16px 14px;
     animation: qh-slide-up 0.4s var(--ease-out);
   }
   body[data-qh-mode='story'] .qh-panel {
     bottom: 10px;
   }
+  .qh-panel-body {
+    padding: 16px 16px 14px;
+  }
   .qh-panel.is-collapsed {
     max-height: 168px;
-    overflow: hidden;
     cursor: pointer;
+  }
+  .qh-panel.is-collapsed .qh-panel-body {
+    overflow: hidden;
   }
   .qh-panel.is-collapsed::after {
     content: '';
@@ -800,26 +815,26 @@ html {
   .qh-panel.is-collapsed .qh-panel-close {
     display: none;
   }
-  /* 把手條：兩態都固定在卡片頂緣同一位置 */
+  /* 展開/收合圓鈕：固定在面板右下角——面板貼底，兩態的右下角是同一個實體位置 */
   .qh-panel-handle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 24px;
-    padding: 0;
-    font-size: 13px;
-    line-height: 22px;
-    text-align: center;
-    color: var(--ink-dim);
-    background: rgba(255, 255, 255, 0.04);
-    border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px 10px 0 0;
+    right: 10px;
+    bottom: 10px;
+    width: 42px;
+    height: 42px;
+    font-size: 17px;
+    line-height: 1;
+    color: var(--gold);
+    background: rgba(227, 179, 65, 0.14);
+    border: 1px solid var(--panel-line);
+    border-radius: 50%;
     cursor: pointer;
+    z-index: 2;
   }
-  /* 舊的抽屜視覺把手由把手條取代 */
+  /* 舊的抽屜視覺把手不再需要 */
   .qh-panel::before {
     display: none;
   }

@@ -41,8 +41,8 @@ export const STORY_SECTIONS: StorySection[] = [
       '循著十四經絡，從頭到足，走一遍人體的山川孔穴。往下捲動，開始旅程。',
     // 桌機：注視點左移 → 銅人讓到畫面右側，避免與左側大標題交疊
     pose: { target: [-0.42, 1.08, 0], azimuth: -0.3, polar: 1.42, distance: 4.6 },
-    // 手機：置中構圖（文字改沉到畫面下緣，上下分離）
-    poseNarrow: { target: [0, 1.12, 0] },
+    // 手機：注視點壓低 → 銅人整體移到畫面上半（55% 內），下半留給文字
+    poseNarrow: { target: [0, 0.12, 0] },
     pointIds: [],
     side: 'L',
   },

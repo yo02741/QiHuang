@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ACUPOINTS, ACUPOINT_MAP } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
 import { ORGAN_MAP } from '@/data/organs'
@@ -50,6 +50,12 @@ export function PointPanel() {
   // 手機底部迷你卡：預設收合（矮卡不擋小金人），點卡展開全文。
   // 桌機無視此狀態（collapsed 樣式只存在於 mobile media query）
   const [expanded, setExpanded] = useState(false)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const toggle = (next: boolean) => {
+    setExpanded(next)
+    // 收合時把內容捲回頂，避免行動瀏覽器殘留的內捲動狀態卡住頁面捲動
+    if (!next) bodyRef.current?.scrollTo({ top: 0 })
+  }
 
   // 導覽 spotlight：story 模式未選穴時，面板跟著點亮進度走
   const tour = mode === 'story' && !selectedPointId && Boolean(spotlightPointId)
@@ -81,17 +87,17 @@ export function PointPanel() {
       aria-live="polite"
       onClick={() => {
         // 收合態（手機迷你卡）點卡片任意處展開
-        if (!expanded) setExpanded(true)
+        if (!expanded) toggle(true)
       }}
     >
-      {/* 手機把手條：固定在卡片頂緣，收合/展開都在同一位置切換（桌機 CSS 隱藏） */}
+      {/* 手機展開/收合圓鈕：面板貼底，右下角在兩態是同一個實體位置（桌機 CSS 隱藏） */}
       <button
         type="button"
         className="qh-panel-handle"
         aria-label={expanded ? '收合' : '展開'}
         onClick={(e) => {
           e.stopPropagation()
-          setExpanded((v) => !v)
+          toggle(!expanded)
         }}
       >
         {expanded ? '⌄' : '⌃'}
@@ -101,6 +107,7 @@ export function PointPanel() {
           ×
         </button>
       )}
+      <div className="qh-panel-body" ref={bodyRef}>
 
       {point && meridian ? (
         <>
@@ -278,6 +285,7 @@ export function PointPanel() {
           </section>
         </>
       ) : null}
+      </div>
     </aside>
   )
 }
