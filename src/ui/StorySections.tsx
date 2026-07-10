@@ -100,11 +100,7 @@ export function StorySections() {
                 : `${sectionHeightVh(s)}vh`,
           }}
         >
-          <div
-            className="qh-section-card"
-            // 手機頂部精簡條：文案兩行截斷，點卡片展開/收合（桌機全文常駐無感）
-            onClick={(e) => e.currentTarget.classList.toggle('is-expanded')}
-          >
+          <div className="qh-section-card">
             <p className="qh-section-kicker">{s.kicker}</p>
             {s.id === 'landing' ? (
               <h1 className="qh-section-title qh-section-title--landing">{s.title}</h1>

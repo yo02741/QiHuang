@@ -6,7 +6,12 @@ import { Vector3 } from 'three'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { resolveAnchor } from '@/lib/anchors'
-import { SECTION_POSES, SECTION_POSES_NARROW, TRANSITION_ENDS } from '@/data/sections'
+import {
+  SECTION_POSES,
+  SECTION_POSES_NARROW,
+  TRANSITION_ENDS,
+  TRANSITION_ENDS_NARROW,
+} from '@/data/sections'
 import {
   copyPose,
   evaluatePose,
@@ -196,12 +201,12 @@ export function CameraRig() {
     // story 選穴不飛相機（維持滾動視角），迴圈持續運轉
     if (s.mode !== 'story') return
 
-    // 窄視口（手機直式）走 poseNarrow 覆寫軌道 + 拉遠/下移補償
+    // 窄視口（手機直式）走 poseNarrow 覆寫軌道 + 壓縮過渡 + 拉遠/下移補償
     const narrow = size.width < 700
     const target = evaluatePose(
       narrow ? SECTION_POSES_NARROW : SECTION_POSES,
       s.rawProgress,
-      TRANSITION_ENDS,
+      narrow ? TRANSITION_ENDS_NARROW : TRANSITION_ENDS,
     )
     const cur = current.current
     const k = 1 - Math.exp(-delta / SCROLL.poseDamp)

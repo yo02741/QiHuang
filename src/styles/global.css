@@ -472,8 +472,8 @@ html {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.06);
 }
-/* 手機迷你卡的收合鈕（桌機恆隱藏；手機展開時顯示，見 media 區塊） */
-.qh-panel-collapse {
+/* 手機迷你卡的把手條（桌機恆隱藏；手機兩態皆顯示於卡片頂緣，見 media 區塊） */
+.qh-panel-handle {
   display: none;
 }
 .qh-panel-head {
@@ -677,18 +677,9 @@ html {
     font-size: 19px;
     letter-spacing: 0.08em;
   }
+  /* 部位章只留章名（補充文案手機省略，資訊交給穴位迷你卡） */
   .qh-section-body {
-    margin-top: 3px;
-    font-size: 12.5px;
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-shadow: none;
-  }
-  .qh-section-card.is-expanded .qh-section-body {
-    -webkit-line-clamp: unset;
+    display: none;
   }
 
   /* 手機 landing：銅人上半屏、文字佔首屏下半（維持置中大標，非頂部條） */
@@ -714,7 +705,6 @@ html {
   .qh-section--landing .qh-section-body,
   .qh-section--finale .qh-section-body {
     display: block;
-    -webkit-line-clamp: unset;
     overflow: visible;
   }
   .qh-section--landing .qh-scroll-hint {
@@ -743,9 +733,9 @@ html {
   .qh-header-sub {
     font-size: 10px;
   }
+  /* 手機空間有限：底部警語不顯示（landing 文案與 README 仍有免責聲明） */
   .qh-footer {
-    padding: 8px 14px;
-    font-size: 9.5px;
+    display: none;
   }
 
   /* 探索選單 → 底部一列三顆下拉選單（tabs 與清單收起） */
@@ -776,53 +766,62 @@ html {
     display: none;
   }
 
-  /* 詳情面板 → 底部迷你卡（預設收合不擋小金人，點卡展開；tour 同樣顯示） */
+  /* 詳情面板 → 底部迷你卡（預設收合不擋小金人；把手條固定卡片頂緣兩態切換）。
+     導覽（story）貼近底緣；自由探索讓開底部下拉選單列 */
   .qh-panel {
     top: auto;
     left: 10px;
     right: 10px;
-    bottom: 96px;
+    bottom: 92px;
     width: auto;
-    max-height: 60vh;
-    padding: 18px 16px 14px;
+    max-height: 62vh;
+    padding: 26px 16px 14px;
     animation: qh-slide-up 0.4s var(--ease-out);
   }
+  body[data-qh-mode='story'] .qh-panel {
+    bottom: 10px;
+  }
   .qh-panel.is-collapsed {
-    max-height: 164px;
+    max-height: 168px;
     overflow: hidden;
     cursor: pointer;
   }
   .qh-panel.is-collapsed::after {
-    content: '⌃ 點一下展開';
+    content: '';
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 30px 0 7px;
-    text-align: center;
-    font-size: 10.5px;
-    letter-spacing: 0.2em;
-    color: var(--ink-dim);
-    background: linear-gradient(to top, rgba(14, 17, 23, 0.97) 45%, rgba(14, 17, 23, 0));
+    height: 34px;
+    background: linear-gradient(to top, rgba(14, 17, 23, 0.97) 30%, rgba(14, 17, 23, 0));
     pointer-events: none;
   }
-  /* 收合時不顯示 ×（點卡是展開），展開後顯示收合鈕 */
+  /* 收合時不顯示 ×（點卡是展開） */
   .qh-panel.is-collapsed .qh-panel-close {
     display: none;
   }
-  .qh-panel.is-expanded .qh-panel-collapse {
+  /* 把手條：兩態都固定在卡片頂緣同一位置 */
+  .qh-panel-handle {
     display: block;
     position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 4px 16px;
-    font-size: 11px;
-    letter-spacing: 0.16em;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 22px;
+    text-align: center;
     color: var(--ink-dim);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.04);
     border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px 10px 0 0;
     cursor: pointer;
+  }
+  /* 舊的抽屜視覺把手由把手條取代 */
+  .qh-panel::before {
+    display: none;
   }
   .qh-panel::before {
     /* 抽屜視覺把手 */

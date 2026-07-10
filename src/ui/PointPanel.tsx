@@ -84,17 +84,17 @@ export function PointPanel() {
         if (!expanded) setExpanded(true)
       }}
     >
-      {/* 手機展開後的收合鈕（桌機 CSS 隱藏） */}
+      {/* 手機把手條：固定在卡片頂緣，收合/展開都在同一位置切換（桌機 CSS 隱藏） */}
       <button
         type="button"
-        className="qh-panel-collapse"
-        aria-label="收合"
+        className="qh-panel-handle"
+        aria-label={expanded ? '收合' : '展開'}
         onClick={(e) => {
           e.stopPropagation()
-          setExpanded(false)
+          setExpanded((v) => !v)
         }}
       >
-        ▾ 收合
+        {expanded ? '⌄' : '⌃'}
       </button>
       {!tour && (
         <button type="button" className="qh-panel-close" aria-label="關閉" onClick={close}>

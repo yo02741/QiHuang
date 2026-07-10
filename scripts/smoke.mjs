@@ -291,7 +291,7 @@ try {
 
   await scrollToSection(mobile, 'lower-limb', 11)
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('ST36', 'ST'))
-  await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
+  await mobile.locator('.qh-panel-title', { hasText: '足三里' }).waitFor({ timeout: 5000 })
   await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })
   await mobile.waitForTimeout(2200)
   await settleFrames(mobile, 30)
@@ -305,9 +305,9 @@ try {
   await mobile.waitForTimeout(600)
   await shoot(mobile, `${SHOT_DIR}09b-mobile-expanded.png`)
   console.log('✓ 09b-mobile-expanded.png（展開詳情・白話解）')
-  await mobile.locator('.qh-panel-collapse').click()
+  await mobile.locator('.qh-panel-handle').click()
   await mobile.waitForSelector('.qh-panel.is-collapsed', { timeout: 5000 })
-  console.log('✓ 收合鈕恢復迷你卡')
+  console.log('✓ 把手條收回迷你卡')
 
   // 手機自由探索：探索 chip bar + 症狀反查 + 抽屜同框不重疊
   await mobile.evaluate(() => {

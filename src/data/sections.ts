@@ -227,8 +227,22 @@ export const TRANSITION_ENDS: number[] = STORY_SECTIONS.map(
   (s) => (DWELL_START * 130) / sectionHeightVh(s),
 )
 
-/** 第 order 個穴（共 count 穴）的點亮門檻（章內進度 0–1；與標記/標籤共用） */
+/**
+ * 窄視口（手機）的過渡壓縮：章高已 ×1.4（--qh-svh），若過渡比例不變，
+ * 每章開頭會有 ~73vh 的「滑了沒反應」死區——壓一半讓點亮更早開始。
+ */
+export const NARROW_TRANSITION_SCALE = 0.55
+export const TRANSITION_ENDS_NARROW: number[] = TRANSITION_ENDS.map(
+  (t) => t * NARROW_TRANSITION_SCALE,
+)
+
+const narrowQuery =
+  typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)') : null
+
+/** 第 order 個穴（共 count 穴）的點亮門檻（章內進度 0–1；標記/標籤/spotlight 共用，隨視口寬窄取對應過渡） */
 export function lightThreshold(sectionIndex: number, order: number, count: number): number {
-  const start = TRANSITION_ENDS[sectionIndex]
-  return start + (1 - start - 0.08) * (order / count)
+  const start = narrowQuery?.matches
+    ? TRANSITION_ENDS_NARROW[sectionIndex]
+    : TRANSITION_ENDS[sectionIndex]
+  return start + (1 - start - 0.06) * (order / count)
 }

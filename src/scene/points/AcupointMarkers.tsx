@@ -32,17 +32,14 @@ for (const p of ACUPOINTS) {
 }
 const COMBO_POINTS = new Map(COMBOS.map((c) => [c.id, new Set(c.pointIds)]))
 
-/** pointId → 所屬章節與點亮門檻（lightThreshold 與標籤共用同一公式） */
-const SECTION_LIGHT = new Map<string, { section: number; threshold: number }>()
+/** pointId → 所屬章節與點亮順位（門檻於每幀以 lightThreshold 計算，隨視口寬窄變動） */
+const SECTION_LIGHT = new Map<string, { section: number; order: number; count: number }>()
 /** 無穴位的章節（landing / finale）：全部標記回休止金，不做暗化 */
 const NEUTRAL_SECTIONS = new Set<number>()
 STORY_SECTIONS.forEach((s, si) => {
   if (s.pointIds.length === 0) NEUTRAL_SECTIONS.add(si)
   s.pointIds.forEach((id, oi) => {
-    SECTION_LIGHT.set(id, {
-      section: si,
-      threshold: lightThreshold(si, oi, s.pointIds.length),
-    })
+    SECTION_LIGHT.set(id, { section: si, order: oi, count: s.pointIds.length })
   })
 })
 
@@ -138,7 +135,10 @@ export function AcupointMarkers() {
         } else if (light?.section === sectionIndex && inst.pointId === spotlightPointId) {
           targetScale = 1.6
           tmpC.multiplyScalar(2.8)
-        } else if (light?.section === sectionIndex && sectionProgress >= light.threshold) {
+        } else if (
+          light?.section === sectionIndex &&
+          sectionProgress >= lightThreshold(light.section, light.order, light.count)
+        ) {
           targetScale = 1.05
           tmpC.multiplyScalar(0.85) // 已訪：保留經絡色但不發光
         } else if (light?.section === sectionIndex) {
