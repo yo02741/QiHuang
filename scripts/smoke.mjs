@@ -231,7 +231,7 @@ try {
 
   // 配穴組合：選「四關」→ 面板顯示組合說明與成員
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectCombo('siguan'))
-  await page.getByText('四關').first().waitFor({ timeout: 5000 })
+  await page.locator('.qh-panel-title', { hasText: '四關' }).waitFor({ timeout: 5000 })
   await page.getByText('為何搭配').first().waitFor({ timeout: 5000 })
   await page.waitForTimeout(900)
   await settleFrames(page, 30)

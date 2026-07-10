@@ -329,6 +329,28 @@ html {
   transform: none;
 }
 
+/* 行動裝置的三顆下拉選單（桌機隱藏，見 media 區塊） */
+.qh-explore-selects {
+  display: none;
+  gap: 6px;
+}
+.qh-explore-selects select {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 6px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+  background: rgba(227, 179, 65, 0.06);
+  border: 1px solid var(--panel-line);
+  border-radius: 7px;
+  color-scheme: dark;
+}
+.qh-explore-selects select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
 /* 探索選單：三 tab（經絡/症狀/配穴） */
 .qh-explore-tabs {
   display: flex;
@@ -671,7 +693,7 @@ html {
     font-size: 9.5px;
   }
 
-  /* 經絡列表 → 底部水平 chip bar */
+  /* 探索選單 → 底部一列三顆下拉選單（tabs 與清單收起） */
   .qh-meridians {
     top: auto;
     left: 10px;
@@ -681,38 +703,20 @@ html {
     transform: translateY(6px);
     flex-direction: row;
     max-height: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 6px;
+    overflow: visible;
+    padding: 8px;
     gap: 4px;
   }
   .qh-meridians.is-visible {
     transform: none;
   }
-  .qh-meridian-btn {
-    padding: 6px 10px;
-    font-size: 12.5px;
+  .qh-explore-selects {
+    display: flex;
+    flex: 1;
   }
-  .qh-meridian-element {
-    display: none;
-  }
-  /* 探索 tabs 轉直欄靠左，選項橫向捲動；症狀分組標題收起 */
-  .qh-explore-tabs {
-    flex: none;
-    flex-direction: column;
-    gap: 2px;
-    margin: 0;
-    padding: 0 6px 0 0;
-    border-bottom: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .qh-explore-tab {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-  .qh-symptom-row {
-    display: contents;
-  }
+  .qh-explore-tabs,
+  .qh-meridian-btn,
+  .qh-symptom-row,
   .qh-explore-group {
     display: none;
   }
@@ -723,14 +727,14 @@ html {
   }
 
 
-  /* 詳情面板 → 底部抽屜（底邊讓開探索 chip bar，不重疊） */
+  /* 詳情面板 → 底部抽屜（底邊讓開下拉選單列，不重疊） */
   .qh-panel {
     top: auto;
     left: 10px;
     right: 10px;
-    bottom: 132px;
+    bottom: 96px;
     width: auto;
-    max-height: 40vh;
+    max-height: 42vh;
     padding: 18px 16px 14px;
     animation: qh-slide-up 0.4s var(--ease-out);
   }
