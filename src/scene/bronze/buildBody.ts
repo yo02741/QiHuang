@@ -120,11 +120,16 @@ export function buildBodyGeometry(): BufferGeometry {
     geoms.push(head)
   }
 
-  // 五官線索（正反面辨識）：鼻＝面前小橢球；耳＝兩側壓扁橢球
+  // 正反面辨識線索（僅正面有的浮雕，背面保持素淨）：
+  // 鼻＝面前小橢球；耳＝兩側壓扁橢球；眉弓＝眼窩上緣的扁條；
+  // 胸膛＝兩片胸肌浮雕；臍＝小腹圓凸
   geoms.push(ball(new Vector3(0, 1.572, 0.099), 1, new Vector3(0.013, 0.024, 0.016)))
   for (const sx of [1, -1]) {
     geoms.push(ball(new Vector3(sx * 0.082, 1.575, 0.002), 1, new Vector3(0.009, 0.03, 0.022)))
+    geoms.push(ball(new Vector3(sx * 0.026, 1.615, 0.082), 1, new Vector3(0.02, 0.007, 0.01)))
+    geoms.push(ball(new Vector3(sx * 0.055, 1.27, 0.082), 1, new Vector3(0.038, 0.045, 0.02)))
   }
+  geoms.push(ball(new Vector3(0, 1.02, 0.092), 1, new Vector3(0.008, 0.008, 0.005)))
 
   geoms.push(...limbGeometries(false), ...limbGeometries(true))
 

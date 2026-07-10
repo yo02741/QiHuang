@@ -86,7 +86,7 @@ export function AcupointMarkers() {
     const mesh = visualRef.current
     const hit = hitRef.current
     if (!mesh || !hit) return
-    const { hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId, mode, sectionIndex, rawProgress } =
+    const { hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId, mode, sectionIndex, rawProgress, spotlightPointId } =
       useAppStore.getState()
 
     const k = 1 - Math.exp(-delta / 0.12) // 統一的 damp 係數
@@ -109,16 +109,20 @@ export function AcupointMarkers() {
         targetScale = 1.8
         tmpC.copy(REST_GOLD).multiplyScalar(1.6)
       } else if (storyLight) {
-        // 滾動敘事：當前章的穴位依進度逐一點亮，其餘章節暗化；
+        // 滾動敘事：只有「目前」的穴位全亮（spotlight），已走過的轉為
+        // 柔和已訪狀態（帶經絡色、不進 bloom），未到的微光、其餘章節暗化；
         // landing / finale 全體回休止金
         const light = SECTION_LIGHT.get(inst.pointId)
         if (NEUTRAL_SECTIONS.has(sectionIndex)) {
           tmpC.copy(REST_GOLD).multiplyScalar(0.55)
-        } else if (light?.section === sectionIndex && sectionProgress >= light.threshold) {
-          targetScale = 1.5
+        } else if (light?.section === sectionIndex && inst.pointId === spotlightPointId) {
+          targetScale = 1.6
           tmpC.multiplyScalar(2.8)
+        } else if (light?.section === sectionIndex && sectionProgress >= light.threshold) {
+          targetScale = 1.05
+          tmpC.multiplyScalar(0.85) // 已訪：保留經絡色但不發光
         } else if (light?.section === sectionIndex) {
-          targetScale = 1.1
+          targetScale = 1.0
           tmpC.copy(REST_GOLD).multiplyScalar(0.4)
         } else {
           targetScale = 0.7

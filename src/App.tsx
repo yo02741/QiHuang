@@ -8,6 +8,7 @@ import { MeridianList } from '@/ui/MeridianList'
 import { PointPanel } from '@/ui/PointPanel'
 import { Footer } from '@/ui/Footer'
 import { StorySections } from '@/ui/StorySections'
+import { ViewCompass } from '@/ui/ViewCompass'
 import { useAppStore } from '@/store/useAppStore'
 
 /**
@@ -20,6 +21,9 @@ export default function App() {
   // 效能自動降階：掉幀時降 dpr，回穩時升回
   const maxDpr = Math.min(window.devicePixelRatio, coarse ? 1.5 : 2)
   const [dpr, setDpr] = useState(maxDpr)
+  // ?shot：無頭截圖模式。CDP 截圖可能在 buffer swap 後抓到清空的
+  // canvas（偶發整幀黑），preserveDrawingBuffer 讓像素常駐可讀
+  const shotMode = new URLSearchParams(window.location.search).has('shot')
 
   // Esc：先取消選穴，再取消選經絡
   useEffect(() => {
@@ -38,7 +42,11 @@ export default function App() {
       <div className="qh-canvas">
         <Canvas
           dpr={dpr}
-          gl={{ antialias: false, powerPreference: 'high-performance' }}
+          gl={{
+            antialias: false,
+            powerPreference: 'high-performance',
+            preserveDrawingBuffer: shotMode,
+          }}
           camera={{ fov: 42, near: 0.1, far: 30, position: [0, 1.35, 3.2] }}
         >
           <PerformanceMonitor
@@ -54,6 +62,7 @@ export default function App() {
         <Header />
         <MeridianList />
         <PointPanel />
+        <ViewCompass />
         <Footer />
       </div>
     </>

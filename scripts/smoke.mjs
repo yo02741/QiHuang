@@ -57,6 +57,22 @@ async function settleFrames(p, n = 30, timeout = 90000) {
   )
 }
 
+/**
+ * 防黑幀截圖：SwiftShader 偶發「合成器餓死」的整幀黑（PNG 壓縮後極小），
+ * 以檔案大小啟發式偵測，黑幀就再等幀重拍（最多 3 次）。
+ */
+async function shoot(p, path, minBytes = 40000) {
+  for (let attempt = 0; ; attempt++) {
+    const buf = await p.screenshot({ path })
+    if (buf.length >= minBytes || attempt >= 2) {
+      if (buf.length < minBytes) console.warn(`⚠ ${path} 疑似黑幀（${buf.length}B），已保留最後一次`)
+      return
+    }
+    await p.waitForTimeout(1200)
+    await settleFrames(p, 40)
+  }
+}
+
 /** 捲動到「第 index 章、章內進度 progress」（rawProgress = index + progress） */
 async function scrollToSection(p, id, index, progress = 0.85) {
   await p.evaluate(
@@ -117,19 +133,19 @@ try {
 
   // 暖機：SwiftShader 首次載入的 shader 冷編譯會餓死合成器（黑幀數十秒）；
   // 先完整跑一次「載入→選穴」把 shader cache 編熱，正式截圖走第二次載入
-  await page.goto(`${BASE}/?az=0`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/?az=0&shot`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
   await settleFrames(page, 80, 180000)
   console.log('✓ 暖機完成（shader cache）')
 
   // ── 滾動敘事 ──
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/?shot`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })
   await page.waitForTimeout(2800) // 經絡線交錯淡入（牆鐘時間）
   await settleFrames(page, 60)
-  await page.screenshot({ path: `${SHOT_DIR}01-landing.png` })
+  await shoot(page, `${SHOT_DIR}01-landing.png`)
   console.log('✓ 01-landing.png')
 
   // 逐章捲動採樣（涵蓋正面/頭頂俯瞰/背面/足部四種鏡位）
@@ -141,7 +157,7 @@ try {
   ]
   for (const [id, index] of stops) {
     await scrollToSection(page, id, index)
-    await page.screenshot({ path: `${SHOT_DIR}02-section-${id}.png` })
+    await shoot(page, `${SHOT_DIR}02-section-${id}.png`)
     console.log(`✓ 02-section-${id}.png`)
   }
 
@@ -158,7 +174,7 @@ try {
   console.log('✓ 臟腑名稱標籤浮現（心包）')
   await page.waitForTimeout(2200) // 鏡頭聚焦 + 身體淡出
   await settleFrames(page, 30)
-  await page.screenshot({ path: `${SHOT_DIR}03-point-xray.png` })
+  await shoot(page, `${SHOT_DIR}03-point-xray.png`)
   console.log('✓ 03-point-xray.png（面板含 內關/PC6）')
 
   await page.evaluate(() => window.scrollBy({ top: 300 }))
@@ -180,7 +196,7 @@ try {
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectMeridian('LU'))
   await page.waitForTimeout(900)
   await settleFrames(page, 30)
-  await page.screenshot({ path: `${SHOT_DIR}04-free-meridian-lu.png` })
+  await shoot(page, `${SHOT_DIR}04-free-meridian-lu.png`)
   console.log('✓ 04-free-meridian-lu.png（自由探索 + 肺經）')
 
   // Esc 復位
@@ -196,10 +212,10 @@ try {
 
   // 銅人四方位截圖（美術迭代迴圈用；?az 直進 free 模式）
   for (const az of [0, 90, 180, 270]) {
-    await page.goto(`${BASE}/?az=${az}`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`${BASE}/?az=${az}&shot`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
     await settleFrames(page, 60)
-    await page.screenshot({ path: `${SHOT_DIR}body-az${az}.png` })
+    await shoot(page, `${SHOT_DIR}body-az${az}.png`)
     console.log(`✓ body-az${az}.png`)
   }
   await page.close()
@@ -214,15 +230,15 @@ try {
   mobile.on('console', (m) => {
     if (m.type() === 'error') errors.push(`mobile console.error: ${m.text()}`)
   })
-  await mobile.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await mobile.goto(`${BASE}/?shot`, { waitUntil: 'domcontentloaded' })
   await mobile.waitForSelector('body[data-qh-ready="true"]', { timeout: 30000 })
   await mobile.waitForTimeout(2800)
   await settleFrames(mobile, 60)
-  await mobile.screenshot({ path: `${SHOT_DIR}05-mobile-landing.png` })
+  await shoot(mobile, `${SHOT_DIR}05-mobile-landing.png`)
   console.log('✓ 05-mobile-landing.png')
 
   await scrollToSection(mobile, 'face-front', 1)
-  await mobile.screenshot({ path: `${SHOT_DIR}06-mobile-section.png` })
+  await shoot(mobile, `${SHOT_DIR}06-mobile-section.png`)
   console.log('✓ 06-mobile-section.png')
 
   await scrollToSection(mobile, 'lower-limb', 11)
@@ -230,7 +246,7 @@ try {
   await mobile.getByText('足三里').first().waitFor({ timeout: 5000 })
   await mobile.waitForTimeout(2200)
   await settleFrames(mobile, 30)
-  await mobile.screenshot({ path: `${SHOT_DIR}07-mobile-panel.png` })
+  await shoot(mobile, `${SHOT_DIR}07-mobile-panel.png`)
   console.log('✓ 07-mobile-panel.png（抽屜含 足三里）')
   await mobile.close()
 

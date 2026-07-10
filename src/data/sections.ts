@@ -9,9 +9,9 @@ import { DWELL_START, type CameraPose } from '@/lib/cameraPath'
  * 方向一致，滾動時不會來回甩鏡頭。數值是調校起點，可用 ?debug 迭代。
  *
  * pointIds＝該部位全部穴位的點亮順序（validate-data.ts 斷言與
- * regionOf 推導一致且 67 穴全覆蓋）；labelIds＝浮現名稱標籤的子集
- * （穴位多的部位只標代表穴，避免標籤海）。
- * side＝雙側穴位的標籤顯示側（跟隨該章相機所在側）。
+ * regionOf 推導一致且 100 穴全覆蓋）。標籤只跟隨「目前」穴位
+ * （導覽 spotlight，見 SectionPointLabels），不做整章標籤海。
+ * side＝雙側穴位的標籤/聚焦顯示側（跟隨該章相機所在側）。
  */
 
 export type SectionId = RegionId | 'landing' | 'finale'
@@ -22,8 +22,9 @@ export interface StorySection {
   kicker: string      // 章節小標（如「第一章・面部」）
   body: string        // 2–4 句部位介紹
   pose: CameraPose
+  /** 窄視口（手機直式）姿勢覆寫：只需給有差異的欄位 */
+  poseNarrow?: Partial<CameraPose>
   pointIds: string[]  // 點亮順序；landing / finale 為空
-  labelIds: string[]  // 顯示名稱標籤的子集（≤ 8）
   side: 'L' | 'R'     // 雙側穴標籤顯示側
 }
 
@@ -38,9 +39,11 @@ export const STORY_SECTIONS: StorySection[] = [
       '北宋天聖年間，醫官王惟一鑄成兩具針灸銅人，體表刻穴、內置臟腑，' +
       '成為千年來醫者習針的標準。這裡以 3D 重現這尊小金人——' +
       '循著十四經絡，從頭到足，走一遍人體的山川孔穴。往下捲動，開始旅程。',
-    pose: { target: [0, 1.05, 0], azimuth: -0.3, polar: 1.42, distance: 4.6 },
+    // 桌機：注視點左移 → 銅人讓到畫面右側，避免與左側大標題交疊
+    pose: { target: [-0.42, 1.08, 0], azimuth: -0.3, polar: 1.42, distance: 4.6 },
+    // 手機：置中構圖（文字改沉到畫面下緣，上下分離）
+    poseNarrow: { target: [0, 1.12, 0] },
     pointIds: [],
-    labelIds: [],
     side: 'L',
   },
   {
@@ -52,7 +55,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '人中則是昏厥急救的要穴——面上的每一竅，都有專穴看守。',
     pose: { target: [0, 1.56, 0.01], azimuth: 0, polar: 1.45, distance: 0.95 },
     pointIds: ['BL2', 'BL1', 'ST1', 'GB1', 'LI20', 'ST4', 'GV26'],
-    labelIds: ['ST1', 'GB1', 'LI20', 'ST4', 'GV26'],
     side: 'L',
   },
   {
@@ -64,7 +66,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '聽宮、翳風開耳竅——耳鳴、面癱的調理都在這一線。',
     pose: { target: [0, 1.56, 0.01], azimuth: 0.5 * PI, polar: 1.45, distance: 0.95 },
     pointIds: ['TE23', 'GB8', 'SI19', 'TE17', 'ST6'],
-    labelIds: ['TE23', 'GB8', 'SI19', 'TE17', 'ST6'],
     side: 'L',
   },
   {
@@ -76,7 +77,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '一穴繫百脈，升陽舉陷、醒腦開竅，是全身最高處的樞紐。',
     pose: { target: [0, 1.66, 0.01], azimuth: 0.8 * PI, polar: 0.28, distance: 0.85 },
     pointIds: ['GV20'],
-    labelIds: ['GV20'],
     side: 'L',
   },
   {
@@ -88,7 +88,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '風池分列兩旁。頭痛、眩暈、項強，都先從這兩處下手。',
     pose: { target: [0, 1.56, -0.02], azimuth: PI, polar: 1.25, distance: 0.75 },
     pointIds: ['GV16', 'GB20', 'BL10', 'GV15'],
-    labelIds: ['GV16', 'GB20', 'BL10', 'GV15'],
     side: 'L',
   },
   {
@@ -100,7 +99,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '伏案久坐的痠緊，多半繞不開這幾穴。',
     pose: { target: [0, 1.42, 0], azimuth: 1.25 * PI, polar: 1.3, distance: 0.95 },
     pointIds: ['GV14', 'GB21', 'CV23', 'CV22'],
-    labelIds: ['GV14', 'GB21', 'CV23', 'CV22'],
     side: 'L',
   },
   {
@@ -117,7 +115,6 @@ export const STORY_SECTIONS: StorySection[] = [
       'PC6', 'LU7', 'HT5', 'SI6', 'LU9', 'HT7', 'PC7', 'TE4', 'LI5', 'LI4',
       'PC8', 'SI3', 'TE3', 'LU10', 'TE1', 'HT9', 'SI1', 'LU11', 'LI1', 'PC9',
     ],
-    labelIds: ['TE14', 'LI11', 'PC6', 'HT7', 'LU9', 'LI4', 'PC8'],
     side: 'R',
   },
   {
@@ -129,7 +126,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '鎖骨下的中府、俞府調肺止咳，脅下的期門疏肝。胸悶氣鬱，從這裡開解。',
     pose: { target: [0, 1.26, 0.02], azimuth: 2 * PI, polar: 1.4, distance: 1.1 },
     pointIds: ['KI27', 'LU1', 'CV17', 'LR14', 'SP21'],
-    labelIds: ['KI27', 'LU1', 'CV17', 'LR14', 'SP21'],
     side: 'L',
   },
   {
@@ -141,7 +137,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '肩胛上的天宗則管肩背痠痛。按背知臟腑，是中醫獨到的診療思路。',
     pose: { target: [0, 1.2, -0.02], azimuth: 3 * PI, polar: 1.4, distance: 1.2 },
     pointIds: ['BL13', 'SI11', 'BL15', 'GV9', 'BL18', 'BL20'],
-    labelIds: ['BL13', 'SI11', 'BL15', 'GV9', 'BL18', 'BL20'],
     side: 'L',
   },
   {
@@ -153,7 +148,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '臍旁的天樞調理腸腑。古人養生重「丹田」，說的正是臍下這一片。',
     pose: { target: [0, 1.03, 0.03], azimuth: 4 * PI, polar: 1.45, distance: 1.0 },
     pointIds: ['CV12', 'LR13', 'ST25', 'CV8', 'CV6', 'CV4'],
-    labelIds: ['CV12', 'LR13', 'ST25', 'CV8', 'CV6', 'CV4'],
     side: 'L',
   },
   {
@@ -165,7 +159,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '臀外側的環跳則主下肢——坐骨神經痛的針灸首選。',
     pose: { target: [0, 0.98, -0.02], azimuth: 5 * PI, polar: 1.45, distance: 1.1 },
     pointIds: ['BL23', 'GV4', 'GV3', 'GB30'],
-    labelIds: ['BL23', 'GV4', 'GV3', 'GB30'],
     side: 'L',
   },
   {
@@ -181,7 +174,6 @@ export const STORY_SECTIONS: StorySection[] = [
       'GB31', 'SP10', 'ST34', 'BL40', 'KI10', 'GB34', 'SP9', 'ST36', 'SP8',
       'ST40', 'BL57', 'LR5', 'KI7', 'SP6', 'GB39', 'KI3', 'BL60',
     ],
-    labelIds: ['GB31', 'SP10', 'BL40', 'ST36', 'BL57', 'SP6', 'KI3', 'GB39'],
     side: 'R',
   },
   {
@@ -193,7 +185,6 @@ export const STORY_SECTIONS: StorySection[] = [
       '足底的湧泉是腎經起點，引火歸元。旅程至此，經氣已從頭走到足。',
     pose: { target: [0, 0.09, 0.03], azimuth: 6 * PI, polar: 0.95, distance: 0.85 },
     pointIds: ['ST41', 'KI6', 'LR3', 'GB41', 'SP3', 'LR2', 'ST44', 'LR1', 'SP1', 'BL67', 'KI1'],
-    labelIds: ['ST41', 'KI6', 'LR3', 'GB41', 'SP3', 'ST44', 'KI1'],
     side: 'L',
   },
   {
@@ -205,12 +196,18 @@ export const STORY_SECTIONS: StorySection[] = [
       '透視它對應的臟腑，或從經絡選單循一條經絡走完全程。',
     pose: { target: [0, 1.05, 0], azimuth: 6 * PI, polar: 1.48, distance: 3.2 },
     pointIds: [],
-    labelIds: [],
     side: 'L',
   },
 ]
 
 export const SECTION_POSES: CameraPose[] = STORY_SECTIONS.map((s) => s.pose)
+
+/** 窄視口姿勢軌道（poseNarrow 覆寫；azimuth 不允許覆寫，兩軌道插值一致） */
+export const SECTION_POSES_NARROW: CameraPose[] = STORY_SECTIONS.map((s) => ({
+  ...s.pose,
+  ...s.poseNarrow,
+  azimuth: s.pose.azimuth,
+}))
 
 export const SECTION_INDEX = new Map(STORY_SECTIONS.map((s, i) => [s.id, i]))
 

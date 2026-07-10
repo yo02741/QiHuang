@@ -87,9 +87,17 @@ body {
 .qh-section--finale .qh-section-card {
   position: static;
 }
+/* landing：文字靠左、銅人在右（pose 注視點左移），避免交疊 */
 .qh-section--landing {
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
+}
+.qh-section--landing .qh-section-card {
+  max-width: 34em;
+}
+.qh-section--landing .qh-scroll-hint {
+  align-items: flex-start;
+  text-indent: 0;
 }
 .qh-section-card {
   pointer-events: auto;
@@ -136,8 +144,7 @@ body {
   text-shadow: 0 1px 14px rgba(11, 14, 18, 0.9), 0 0 34px rgba(11, 14, 18, 0.8);
 }
 .qh-section--landing .qh-section-body {
-  max-width: 34em;
-  margin: 0 auto;
+  max-width: 30em;
   color: var(--ink-dim);
 }
 .qh-scroll-hint {
@@ -498,9 +505,20 @@ body {
   .qh-section-card {
     top: 52vh;
   }
+  /* 手機 landing：銅人上半屏、文字佔首屏下半（上下分離不交疊） */
   .qh-section--landing {
+    align-items: flex-start;
+    padding: 48vh 22px 0;
+    text-align: center;
+  }
+  .qh-section--landing .qh-section-card {
+    margin: 0 auto;
+  }
+  .qh-section--landing .qh-scroll-hint {
     align-items: center;
-    padding: 0 22px;
+  }
+  .qh-section--landing .qh-section-title--landing {
+    font-size: clamp(56px, 18vw, 84px);
   }
   .qh-section-card {
     max-width: none;
@@ -561,6 +579,7 @@ body {
     display: none;
   }
 
+
   /* 詳情面板 → 底部抽屜 */
   .qh-panel {
     top: auto;
@@ -613,6 +632,13 @@ body {
 .qh-point-label.is-lit {
   opacity: 1;
   transform: translateY(var(--qh-label-lift));
+  animation: qh-label-in 0.45s var(--ease-out);
+}
+@keyframes qh-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--qh-label-lift) + 8px));
+  }
 }
 .qh-point-label-name {
   font-family: var(--font-display);
@@ -623,6 +649,41 @@ body {
   font-size: 10px;
   letter-spacing: 0.04em;
   color: var(--ink-dim);
+}
+
+/* ===== 視角方位指示器（左下角） ===== */
+.qh-compass {
+  position: absolute;
+  left: 22px;
+  bottom: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 10px;
+  background: rgba(14, 17, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  pointer-events: none;
+}
+.qh-compass-needle {
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--gold);
+  transition: transform 0.1s linear;
+}
+.qh-compass-label {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+}
+/* 行動裝置：方位指示器移到左上，讓開底部 chip bar / 文案卡 */
+@media (max-width: 768px) {
+  .qh-compass {
+    left: 12px;
+    bottom: auto;
+    top: 64px;
+  }
 }
 
 /* ===== 臟腑名稱標籤（透視時浮現） ===== */

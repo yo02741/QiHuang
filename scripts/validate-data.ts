@@ -98,10 +98,6 @@ for (const m of MERIDIANS) {
       const region = derived.get(s.id as string)
       if (!region?.includes(id)) fail(`${s.id} 收錄了 ${id}，但部位推導不屬於此區`)
     }
-    for (const id of s.labelIds) {
-      if (!s.pointIds.includes(id)) fail(`${s.id} 的標籤 ${id} 不在 pointIds 內`)
-    }
-    if (s.labelIds.length > 8) fail(`${s.id} 標籤數 ${s.labelIds.length} 超過 8`)
   }
   for (const p of ACUPOINTS) {
     if (!claimed.has(p.id)) fail(`${p.id} 未被任何 section 收錄`)

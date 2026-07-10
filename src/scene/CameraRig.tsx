@@ -6,7 +6,7 @@ import { Vector3 } from 'three'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { resolveAnchor } from '@/lib/anchors'
-import { SECTION_POSES, TRANSITION_ENDS } from '@/data/sections'
+import { SECTION_POSES, SECTION_POSES_NARROW, TRANSITION_ENDS } from '@/data/sections'
 import {
   copyPose,
   evaluatePose,
@@ -14,6 +14,7 @@ import {
   type MutablePose,
 } from '@/lib/cameraPath'
 import { CAMERA_POSES, SCROLL, TIMING } from '@/lib/constants'
+import { viewState } from '@/lib/viewState'
 import { useIsCoarsePointer } from '@/hooks/useIsCoarsePointer'
 
 const { ACTION } = CameraControlsImpl
@@ -181,6 +182,12 @@ export function CameraRig() {
     }
   }, [gl, coarse])
 
+  // 視角方位（ViewCompass 用）：兩種模式都回報
+  useFrame(() => {
+    const controls = ref.current
+    if (controls) viewState.azimuth = controls.azimuthAngle
+  })
+
   // story 滾動運鏡：阻尼姿勢追蹤 + dragOffset 疊加 + landing 微幅晃動
   useFrame(({ clock, size }, delta) => {
     const controls = ref.current
@@ -189,7 +196,13 @@ export function CameraRig() {
     // story 選穴不飛相機（維持滾動視角），迴圈持續運轉
     if (s.mode !== 'story') return
 
-    const target = evaluatePose(SECTION_POSES, s.rawProgress, TRANSITION_ENDS)
+    // 窄視口（手機直式）走 poseNarrow 覆寫軌道 + 拉遠/下移補償
+    const narrow = size.width < 700
+    const target = evaluatePose(
+      narrow ? SECTION_POSES_NARROW : SECTION_POSES,
+      s.rawProgress,
+      TRANSITION_ENDS,
+    )
     const cur = current.current
     const k = 1 - Math.exp(-delta / SCROLL.poseDamp)
     cur.azimuth += (target.azimuth - cur.azimuth) * k
@@ -211,8 +224,7 @@ export function CameraRig() {
     const idle =
       s.rawProgress < 0.6 ? (1 - s.rawProgress / 0.6) * 0.07 * Math.sin(clock.elapsedTime * 0.22) : 0
 
-    // 窄視口（手機直式）補償：拉遠並下移注視點，讓主體讓出下半屏給文案卡
-    const narrow = size.width < 700
+    // 窄視口補償：拉遠並下移注視點，讓主體讓出下半屏給文案卡
     const dist = cur.distance * (narrow ? 1.35 : 1)
     const yOff = narrow ? -0.1 : 0
 
