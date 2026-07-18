@@ -42,6 +42,7 @@ interface AppState {
   quizActive: boolean                   // 學習測驗模式進行中（free 模式）
   quizTargetId: string | null           // 本題要猜的穴位（銅人高亮+鏡頭聚焦，不觸發 xray）
   quizTargetSide: 'L' | 'R'
+  searchOpen: boolean                   // 搜尋盤（command palette）開啟中
   debug: boolean
   actions: {
     /** StorySections 的 scroll handler 專用（rAF 節流後呼叫） */
@@ -66,6 +67,7 @@ interface AppState {
     setQuizTarget(id: string | null, side?: 'L' | 'R'): void
     /** 結束測驗，回自由探索 */
     endQuiz(): void
+    setSearchOpen(open: boolean): void
     reset(): void
   }
 }
@@ -95,6 +97,7 @@ export const useAppStore = create<AppState>()((set) => ({
   quizActive: false,
   quizTargetId: null,
   quizTargetSide: 'L',
+  searchOpen: false,
   debug,
   actions: {
     setScroll: (rawProgress, velocity) =>
@@ -186,6 +189,7 @@ export const useAppStore = create<AppState>()((set) => ({
       }),
     setQuizTarget: (id, side = 'L') => set({ quizTargetId: id, quizTargetSide: side }),
     endQuiz: () => set({ quizActive: false, quizTargetId: null }),
+    setSearchOpen: (open) => set({ searchOpen: open }),
     reset: () =>
       set({
         selectedPointId: null,
