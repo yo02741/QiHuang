@@ -37,6 +37,8 @@ interface AppState {
   hoveredPointId: string | null
   hoveredSide: 'L' | 'R'                // tooltip 顯示在被 hover 的那一側
   xray: boolean
+  qiFlowPlaying: boolean                // 經絡氣流循行動畫播放中（free 模式）
+  flowMeridianId: MeridianId | null     // 當前循行到的經絡（QiFlow 場景低頻寫入）
   debug: boolean
   actions: {
     /** StorySections 的 scroll handler 專用（rAF 節流後呼叫） */
@@ -50,6 +52,10 @@ interface AppState {
     selectCombo(id: string | null): void
     selectPoint(id: string | null, meridianId?: MeridianId, side?: 'L' | 'R'): void
     hoverPoint(id: string | null, side?: 'L' | 'R'): void
+    /** 切換經絡氣流循行動畫（起播時清空其他選取；QiFlow 場景推進 flowMeridianId） */
+    toggleQiFlow(): void
+    /** QiFlow 場景每換一條經絡時回寫（低頻，供時辰鐘/經絡線訂閱） */
+    setFlowMeridian(id: MeridianId): void
     reset(): void
   }
 }
@@ -74,6 +80,8 @@ export const useAppStore = create<AppState>()((set) => ({
   hoveredPointId: null,
   hoveredSide: 'L',
   xray: false,
+  qiFlowPlaying: false,
+  flowMeridianId: null,
   debug,
   actions: {
     setScroll: (rawProgress, velocity) =>
@@ -95,8 +103,9 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedSymptomId: null,
         selectedComboId: null,
         xray: false,
+        qiFlowPlaying: false,
       }),
-    // 經絡 / 症狀 / 配穴 三種瀏覽互斥（各自選取時清掉其他兩類與選穴）
+    // 經絡 / 症狀 / 配穴 三種瀏覽互斥（各自選取時清掉其他兩類與選穴，並停止循經播放）
     selectMeridian: (id) =>
       set({
         selectedMeridianId: id,
@@ -104,6 +113,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedComboId: null,
         selectedPointId: null,
         xray: false,
+        qiFlowPlaying: false,
       }),
     selectSymptom: (id) =>
       set({
@@ -112,6 +122,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedComboId: null,
         selectedPointId: null,
         xray: false,
+        qiFlowPlaying: false,
       }),
     selectCombo: (id) =>
       set({
@@ -120,6 +131,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedSymptomId: null,
         selectedPointId: null,
         xray: false,
+        qiFlowPlaying: false,
       }),
     selectPoint: (id, meridianId, side = 'L') =>
       set((s) => ({
@@ -128,8 +140,24 @@ export const useAppStore = create<AppState>()((set) => ({
         xray: id !== null,
         selectedMeridianId: id !== null ? (meridianId ?? s.selectedMeridianId) : s.selectedMeridianId,
         hoveredPointId: null,
+        qiFlowPlaying: id !== null ? false : s.qiFlowPlaying,
       })),
     hoverPoint: (id, side = 'L') => set({ hoveredPointId: id, hoveredSide: side }),
+    toggleQiFlow: () =>
+      set((s) =>
+        s.qiFlowPlaying
+          ? { qiFlowPlaying: false }
+          : {
+              // 起播：清空手動選取，讓氣流獨占畫面（flowMeridianId 由 QiFlow 場景推進）
+              qiFlowPlaying: true,
+              selectedPointId: null,
+              selectedMeridianId: null,
+              selectedSymptomId: null,
+              selectedComboId: null,
+              xray: false,
+            },
+      ),
+    setFlowMeridian: (id) => set({ flowMeridianId: id }),
     reset: () =>
       set({
         selectedPointId: null,
@@ -137,6 +165,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedMeridianId: null,
         selectedSymptomId: null,
         selectedComboId: null,
+        qiFlowPlaying: false,
       }),
   },
 }))

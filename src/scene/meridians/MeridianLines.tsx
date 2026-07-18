@@ -25,11 +25,16 @@ function MeridianLine({ curve, index }: { curve: MeridianCurve; index: number })
   const entryStart = useRef<number | null>(null)
 
   useFrame(({ clock }, delta) => {
-    const { selectedMeridianId, selectedPointId, spotlightPointId, mode } = useAppStore.getState()
-    // 高亮經絡：手動選擇優先；導覽中未選擇則跟隨 spotlight 穴位所屬經絡
+    const {
+      selectedMeridianId, selectedPointId, spotlightPointId, mode,
+      qiFlowPlaying, flowMeridianId,
+    } = useAppStore.getState()
+    // 高亮經絡：手動選擇優先；循經播放中跟隨氣流；導覽中未選擇則跟隨 spotlight 穴位所屬經絡
     // （該經呈現「氣」流動、其餘暗化——與點穴 focus 同一套視覺）
     let activeMeridianId = selectedMeridianId
-    if (!activeMeridianId && !selectedPointId && mode === 'story' && spotlightPointId) {
+    if (!activeMeridianId && qiFlowPlaying && flowMeridianId) {
+      activeMeridianId = flowMeridianId
+    } else if (!activeMeridianId && !selectedPointId && mode === 'story' && spotlightPointId) {
       activeMeridianId = ACUPOINT_MAP.get(spotlightPointId)?.meridianId ?? null
     }
     const active = activeMeridianId === curve.meridianId

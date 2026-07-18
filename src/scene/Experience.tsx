@@ -9,6 +9,7 @@ import { DebugHelpers } from './bronze/DebugHelpers'
 import { Organs } from './organs/Organs'
 import { OrganLabels } from './organs/OrganLabels'
 import { MeridianLines } from './meridians/MeridianLines'
+import { QiFlow } from './meridians/QiFlow'
 import { AcupointMarkers } from './points/AcupointMarkers'
 import { PointTooltip } from './points/PointTooltip'
 import { SectionPointLabels } from './points/SectionPointLabels'
@@ -50,6 +51,7 @@ export function Experience() {
       <Organs />
       <BronzeMan />
       <MeridianLines />
+      <QiFlow />
       <AcupointMarkers />
       <PointTooltip />
       <SectionPointLabels />

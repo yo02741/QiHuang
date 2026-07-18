@@ -40,3 +40,11 @@ export const SCROLL = {
 
 /** tour：導覽 spotlight 的半透視（比點穴 xray 淺，保留銅身形體） */
 export const BODY_OPACITY = { normal: 1.0, xray: 0.22, tour: 0.34, depthWriteThreshold: 0.6 } as const
+
+/** 經絡氣流循行動畫（子午流注自動播放） */
+export const QIFLOW = {
+  secondsPerMeridian: 2.6, // 一條經絡走完的秒數（12 經一輪約 31s）
+  headRadius: 0.021,       // 彗頭球半徑（經 bloom 後為光點）
+  trail: 7,                // 每側彗尾珠數
+  tailStep: 0.04,          // 相鄰彗尾珠在參數 u 上的間距
+} as const

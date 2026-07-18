@@ -317,6 +317,26 @@ try {
   console.log('✓ 子午流注時辰鐘存在')
   await page.keyboard.press('Escape') // 清配穴
 
+  // 循經導引：氣彗星沿經絡循行、時辰鐘指針跟隨
+  await page.getByRole('button', { name: /循經導引/ }).click()
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().qiFlowPlaying === true &&
+          window.__QH_STORE.getState().flowMeridianId !== null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.waitForTimeout(1600) // 讓氣彗星走一段
+  await settleFrames(page, 40)
+  await shoot(page, `${SHOT_DIR}11-qiflow.png`)
+  console.log('✓ 11-qiflow.png（循經導引播放中）')
+  await page.getByRole('button', { name: /暫停循經/ }).click()
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().qiFlowPlaying === false,
+    undefined,
+    { timeout: 5000 },
+  )
+  console.log('✓ 循經導引可暫停')
+
   //「重看導覽」：free → 回到滾動敘事頂部
   await page.getByRole('button', { name: '重看導覽' }).click()
   await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })

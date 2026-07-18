@@ -20,6 +20,9 @@ export function FlowClock() {
   const mode = useAppStore((s) => s.mode)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
   const selectMeridian = useAppStore((s) => s.actions.selectMeridian)
+  const qiFlowPlaying = useAppStore((s) => s.qiFlowPlaying)
+  const flowMeridianId = useAppStore((s) => s.flowMeridianId)
+  const toggleQiFlow = useAppStore((s) => s.actions.toggleQiFlow)
   const [hour, setHour] = useState(() => new Date().getHours())
 
   // 每分鐘校時（時辰兩小時才換一次，分鐘級足夠）
@@ -30,18 +33,23 @@ export function FlowClock() {
 
   if (mode !== 'free') return null
 
-  const current = currentFlowSlot(hour)
-  const currentMeridian = MERIDIAN_MAP.get(current.meridianId)!
+  const timeSlot = currentFlowSlot(hour)
+  // 循經播放中：鐘面高亮跟隨氣流；否則跟隨真實時辰
+  const activeSlot =
+    qiFlowPlaying && flowMeridianId
+      ? (FLOW_ORDER.find((s) => s.meridianId === flowMeridianId) ?? timeSlot)
+      : timeSlot
+  const activeMeridian = MERIDIAN_MAP.get(activeSlot.meridianId)!
 
   return (
-    <div className="qh-flowclock" aria-label="子午流注時辰鐘">
+    <div className={`qh-flowclock ${qiFlowPlaying ? 'is-flowing' : ''}`} aria-label="子午流注時辰鐘">
       <div className="qh-flowclock-ring">
         {FLOW_ORDER.map((slot) => {
           const angle = BRANCH_ANGLE(BRANCH_ORDER.indexOf(slot.branch))
           const x = Math.cos(angle) * RADIUS
           const y = Math.sin(angle) * RADIUS
           const meridian = MERIDIAN_MAP.get(slot.meridianId)!
-          const isNow = slot.branch === current.branch
+          const isNow = slot.branch === activeSlot.branch
           const isSelected = selectedMeridianId === slot.meridianId
           return (
             <button
@@ -61,19 +69,32 @@ export function FlowClock() {
         <button
           type="button"
           className="qh-flowclock-center"
-          title={`現在${current.branch}時，${currentMeridian.name}當令`}
+          title={
+            qiFlowPlaying
+              ? `循經導引中：${activeMeridian.name}`
+              : `現在${activeSlot.branch}時，${activeMeridian.name}當令`
+          }
           onClick={() =>
             selectMeridian(
-              selectedMeridianId === current.meridianId ? null : current.meridianId,
+              selectedMeridianId === activeSlot.meridianId ? null : activeSlot.meridianId,
             )
           }
         >
-          <span className="qh-flowclock-label">當令</span>
-          <span className="qh-flowclock-meridian" style={{ color: currentMeridian.color }}>
-            {currentMeridian.shortName}
+          <span className="qh-flowclock-label">{qiFlowPlaying ? '循經' : '當令'}</span>
+          <span className="qh-flowclock-meridian" style={{ color: activeMeridian.color }}>
+            {activeMeridian.shortName}
           </span>
         </button>
       </div>
+      <button
+        type="button"
+        className={`qh-flow-play ${qiFlowPlaying ? 'is-playing' : ''}`}
+        onClick={toggleQiFlow}
+        aria-pressed={qiFlowPlaying}
+        title="沿子午流注順序，讓「氣」依序循行十二經"
+      >
+        {qiFlowPlaying ? '❚❚ 暫停循經' : '▶ 循經導引'}
+      </button>
     </div>
   )
 }
