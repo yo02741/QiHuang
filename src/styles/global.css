@@ -1058,9 +1058,20 @@ html {
 }
 
 @media (max-width: 768px) {
-  /* 手機底部已有 chip bar，時辰鐘先隱藏 */
+  /* 手機：鐘環讓位給底部 chip bar，但保留「循經導引」按鈕（移到左上角浮動，
+     避開底部下拉列與詳情抽屜、上方正中的視角羅盤） */
   .qh-flowclock {
+    left: 10px;
+    right: auto;
+    top: 56px;
+    bottom: auto;
+    align-items: flex-start;
+  }
+  .qh-flowclock-ring {
     display: none;
+  }
+  .qh-flow-play {
+    margin-top: 0;
   }
 }
 

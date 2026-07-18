@@ -450,6 +450,22 @@ try {
   await settleFrames(mobile, 30)
   await shoot(mobile, `${SHOT_DIR}10-mobile-free.png`)
   console.log('✓ 10-mobile-free.png（手機自由探索・症狀反查）')
+
+  // 循經導引在手機也要能觸發（時辰鐘於手機隱藏，按鈕獨立浮於左上）
+  await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectSymptom(null))
+  const mFlowBtn = mobile.locator('.qh-flow-play')
+  await mFlowBtn.waitFor({ state: 'visible', timeout: 5000 })
+  await mFlowBtn.click() // 真實點擊：驗證手機可及且未被其他層擋住
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().qiFlowPlaying === true &&
+          window.__QH_STORE.getState().flowMeridianId !== null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await mobile.waitForTimeout(1500)
+  await settleFrames(mobile, 40)
+  await shoot(mobile, `${SHOT_DIR}11-mobile-qiflow.png`)
+  console.log('✓ 11-mobile-qiflow.png（手機循經導引可觸發）')
   await mobile.close()
 
   if (errors.length) {
