@@ -1,25 +1,38 @@
 import { useEffect, useState } from 'react'
 import { ACUPOINTS, ACUPOINT_MAP } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
+import { SYMPTOMS } from '@/data/symptoms'
 import { useAppStore } from '@/store/useAppStore'
 import type { Side } from '@/lib/anchors'
+import type { SymptomId } from '@/data/types'
 
 /**
- * 學習測驗（看穴猜名）：銅人身上亮一個穴位、鏡頭聚焦，四選一猜穴名。
- * 一輪 10 題，計分，結束顯示成績。
- * 題目在此產生（Math.random），僅把「要猜的穴位」寫入 store 供場景高亮/聚焦。
+ * 學習測驗：一輪 10 題、兩種題型交錯（單數題/雙數題），計分後顯示成績。
+ *
+ * 看穴猜名（type 'name'）：銅人亮一穴+鏡頭聚焦，四選一猜穴名；
+ *   誘答優先同經——考「定位」而非經絡辨識。
+ * 依症選穴（type 'symptom'）：給一個日常症狀，四選一選最常用的穴位；
+ *   出題時銅人保持中性（target=null 不洩題），作答後才亮出正解位置
+ *   並運鏡飛過去——答完立刻在身體上看到「原來在這」。
+ *
+ * 題目在此產生（Math.random），僅把「要高亮的穴位」寫入 store。
  */
 
 const TOTAL = 10
+
+type QuestionType = 'name' | 'symptom'
 
 interface Option {
   id: string
   name: string
 }
 interface Question {
+  type: QuestionType
   correctId: string
   side: Side
   options: Option[]
+  /** type 'symptom' 才有：題面顯示的症狀名 */
+  symptomName?: string
 }
 
 const shuffle = <T,>(a: T[]): T[] => {
@@ -32,31 +45,62 @@ const shuffle = <T,>(a: T[]): T[] => {
 }
 const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
 
-/** 產生一題：隨機目標穴 + 3 個誘答（優先同經，確保穴名相異） */
-function makeQuestion(): Question {
-  const target = pick(ACUPOINTS)
-  const meridian = MERIDIAN_MAP.get(target.meridianId)!
-  const side: Side = meridian.bilateral && Math.random() < 0.5 ? 'R' : 'L'
+/** 目標穴的展示側：雙側經隨機取一側 */
+function sideOf(pointId: string): Side {
+  const meridian = MERIDIAN_MAP.get(ACUPOINT_MAP.get(pointId)!.meridianId)!
+  return meridian.bilateral && Math.random() < 0.5 ? 'R' : 'L'
+}
 
-  const usedNames = new Set([target.name])
+/** 組四個選項：正解 + 誘答候選（依序取用、名稱不得重複） */
+function buildOptions(correctId: string, candidates: { id: string; name: string }[]): Option[] {
+  const correctName = ACUPOINT_MAP.get(correctId)!.name
+  const usedNames = new Set([correctName])
   const distractors: string[] = []
-  // 同經誘答優先（定位相近、較有鑑別度）
-  const sameMeridian = shuffle(
-    ACUPOINTS.filter((p) => p.meridianId === target.meridianId && p.name !== target.name),
-  )
-  const others = shuffle(ACUPOINTS.filter((p) => p.meridianId !== target.meridianId))
-  for (const p of [...sameMeridian, ...others]) {
+  for (const c of candidates) {
     if (distractors.length >= 3) break
-    if (usedNames.has(p.name)) continue
-    usedNames.add(p.name)
-    distractors.push(p.id)
+    if (usedNames.has(c.name)) continue
+    usedNames.add(c.name)
+    distractors.push(c.id)
   }
-  const options = shuffle([target.id, ...distractors]).map((id) => ({
+  return shuffle([correctId, ...distractors]).map((id) => ({
     id,
     name: ACUPOINT_MAP.get(id)!.name,
   }))
-  return { correctId: target.id, side, options }
 }
+
+/** 看穴猜名：隨機目標穴，誘答優先同經（定位相近、鑑別度高） */
+function makeNameQuestion(): Question {
+  const target = pick(ACUPOINTS)
+  const sameMeridian = shuffle(
+    ACUPOINTS.filter((p) => p.meridianId === target.meridianId && p.id !== target.id),
+  )
+  const others = shuffle(ACUPOINTS.filter((p) => p.meridianId !== target.meridianId))
+  return {
+    type: 'name',
+    correctId: target.id,
+    side: sideOf(target.id),
+    options: buildOptions(target.id, [...sameMeridian, ...others]),
+  }
+}
+
+/** 依症選穴：隨機症狀 → 正解為其對應穴之一；誘答一律「不含該症狀」以免多重正解 */
+function makeSymptomQuestion(): Question {
+  const symptom = pick(SYMPTOMS)
+  const matching = ACUPOINTS.filter((p) => p.symptoms.includes(symptom.id as SymptomId))
+  const target = pick(matching)
+  const nonMatching = shuffle(ACUPOINTS.filter((p) => !p.symptoms.includes(symptom.id as SymptomId)))
+  return {
+    type: 'symptom',
+    correctId: target.id,
+    side: sideOf(target.id),
+    options: buildOptions(target.id, nonMatching),
+    symptomName: symptom.name,
+  }
+}
+
+/** 題型交錯：單數題看穴猜名、雙數題依症選穴（確定性混合，也利於自動驗證） */
+const makeQuestion = (round: number): Question =>
+  round % 2 === 0 ? makeNameQuestion() : makeSymptomQuestion()
 
 function grade(score: number): string {
   if (score >= 9) return '神乎其技，可為明堂之師。'
@@ -73,16 +117,17 @@ export function QuizPanel() {
   const [answered, setAnswered] = useState<string | null>(null)
   const [finished, setFinished] = useState(false)
 
-  const newQuestion = () => {
-    const nq = makeQuestion()
+  const newQuestion = (r: number) => {
+    const nq = makeQuestion(r)
     setQ(nq)
     setAnswered(null)
-    setQuizTarget(nq.correctId, nq.side)
+    // 看穴猜名：立即亮穴聚焦；依症選穴：保持中性，作答後才揭示
+    setQuizTarget(nq.type === 'name' ? nq.correctId : null, nq.side)
   }
 
   // 首題（元件於 quizActive 時掛載）
   useEffect(() => {
-    newQuestion()
+    newQuestion(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -90,20 +135,22 @@ export function QuizPanel() {
     if (answered || !q) return
     setAnswered(id)
     if (id === q.correctId) setScore((s) => s + 1)
+    // 依症選穴：揭示正解位置（亮穴 + 鏡頭飛過去）
+    if (q.type === 'symptom') setQuizTarget(q.correctId, q.side)
   }
   const next = () => {
     if (round + 1 >= TOTAL) {
       setFinished(true)
       return
     }
-    setRound((r) => r + 1)
-    newQuestion()
+    setRound(round + 1)
+    newQuestion(round + 1)
   }
   const restart = () => {
     setScore(0)
     setRound(0)
     setFinished(false)
-    newQuestion()
+    newQuestion(0)
   }
 
   if (finished) {
@@ -133,16 +180,24 @@ export function QuizPanel() {
   const correctMeridian = MERIDIAN_MAP.get(correct.meridianId)!
 
   return (
-    <div className="qh-quiz" role="dialog" aria-label="穴位測驗">
+    <div className="qh-quiz" role="dialog" aria-label="穴位測驗" data-type={q.type}>
       <div className="qh-quiz-head">
         <span className="qh-quiz-progress">第 {round + 1} / {TOTAL} 題</span>
+        <span className="qh-quiz-type">{q.type === 'name' ? '看穴猜名' : '依症選穴'}</span>
         <span className="qh-quiz-score">得分 {score}</span>
         <button type="button" className="qh-quiz-quit" onClick={endQuiz} aria-label="結束測驗">
           ×
         </button>
       </div>
 
-      <p className="qh-quiz-question">銅人身上發亮的是哪個穴位？</p>
+      {q.type === 'name' ? (
+        <p className="qh-quiz-question">銅人身上發亮的是哪個穴位？</p>
+      ) : (
+        <p className="qh-quiz-question">
+          <b className="qh-quiz-symptom">「{q.symptomName}」</b>
+          時，最常取下列哪個穴位？
+        </p>
+      )}
 
       <div className="qh-quiz-options">
         {q.options.map((o) => {
@@ -172,6 +227,7 @@ export function QuizPanel() {
             {answered === q.correctId ? '✓ 答對了' : '✗ 答錯了'}
             <span className="qh-quiz-answer">
               正解：{correct.name}（{correct.code}）・{correctMeridian.shortName}
+              {q.type === 'symptom' && '　↑ 銅人身上亮起處'}
             </span>
           </p>
           <button type="button" className="qh-quiz-btn is-primary" onClick={next}>

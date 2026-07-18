@@ -61,8 +61,9 @@ interface AppState {
     setFlowMeridian(id: MeridianId): void
     /** 進入學習測驗（清空其他選取與播放；題目由 QuizPanel 產生後 setQuizTarget） */
     startQuiz(): void
-    /** QuizPanel 產生每一題時設定要猜的穴位（銅人高亮+鏡頭聚焦） */
-    setQuizTarget(id: string, side: 'L' | 'R'): void
+    /** QuizPanel 設定目前要高亮+聚焦的穴位；「依症選穴」題出題時傳 null
+     *（銅人保持中性不洩題），作答後才揭示正解位置 */
+    setQuizTarget(id: string | null, side?: 'L' | 'R'): void
     /** 結束測驗，回自由探索 */
     endQuiz(): void
     reset(): void
@@ -183,7 +184,7 @@ export const useAppStore = create<AppState>()((set) => ({
         xray: false,
         qiFlowPlaying: false,
       }),
-    setQuizTarget: (id, side) => set({ quizTargetId: id, quizTargetSide: side }),
+    setQuizTarget: (id, side = 'L') => set({ quizTargetId: id, quizTargetSide: side }),
     endQuiz: () => set({ quizActive: false, quizTargetId: null }),
     reset: () =>
       set({
