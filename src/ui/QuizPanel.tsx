@@ -3,6 +3,8 @@ import { ACUPOINTS, ACUPOINT_MAP } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
 import { SYMPTOMS } from '@/data/symptoms'
 import { useAppStore } from '@/store/useAppStore'
+import { soundscape } from '@/lib/soundscape'
+import { shareOrDownloadCard } from '@/lib/scoreCard'
 import type { Side } from '@/lib/anchors'
 import type { SymptomId } from '@/data/types'
 
@@ -134,13 +136,20 @@ export function QuizPanel() {
   const answer = (id: string) => {
     if (answered || !q) return
     setAnswered(id)
-    if (id === q.correctId) setScore((s) => s + 1)
+    if (id === q.correctId) {
+      setScore((s) => s + 1)
+      soundscape.cueCorrect()
+    } else {
+      soundscape.cueWrong()
+    }
     // 依症選穴：揭示正解位置（亮穴 + 鏡頭飛過去）
     if (q.type === 'symptom') setQuizTarget(q.correctId, q.side)
   }
   const next = () => {
     if (round + 1 >= TOTAL) {
       setFinished(true)
+      // 清掉目標 → 鏡頭飛回全身 HOME 視角，成績卡快照才是完整銅人
+      setQuizTarget(null)
       return
     }
     setRound(round + 1)
@@ -163,7 +172,14 @@ export function QuizPanel() {
           </p>
           <p className="qh-quiz-result-grade">{grade(score)}</p>
           <div className="qh-quiz-actions">
-            <button type="button" className="qh-quiz-btn is-primary" onClick={restart}>
+            <button
+              type="button"
+              className="qh-quiz-btn is-primary"
+              onClick={() => void shareOrDownloadCard(score, TOTAL, grade(score))}
+            >
+              ⬇ 儲存成績卡
+            </button>
+            <button type="button" className="qh-quiz-btn" onClick={restart}>
               再測一次
             </button>
             <button type="button" className="qh-quiz-btn" onClick={endQuiz}>

@@ -1,4 +1,5 @@
 import { useAppStore } from '@/store/useAppStore'
+import { SoundToggle } from './SoundToggle'
 
 const NARROW_QUERY = '(max-width: 768px)'
 
@@ -9,6 +10,7 @@ export function Header() {
   const enterStory = useAppStore((s) => s.actions.enterStory)
   const setTourStep = useAppStore((s) => s.actions.setTourStep)
   const startQuiz = useAppStore((s) => s.actions.startQuiz)
+  const setSearchOpen = useAppStore((s) => s.actions.setSearchOpen)
   // landing 大標在畫面中央時隱藏品牌角標，捲入章節後浮現
   const visible = mode === 'free' || sectionIndex > 0
 
@@ -39,6 +41,20 @@ export function Header() {
           </button>
         </div>
       )}
+      <div className="qh-header-tools">
+        {!quizActive && (
+          <button
+            type="button"
+            className="qh-search-btn"
+            onClick={() => setSearchOpen(true)}
+            aria-label="搜尋"
+            title="搜尋穴位／症狀／經絡（快捷鍵 /）"
+          >
+            ⌕
+          </button>
+        )}
+        <SoundToggle />
+      </div>
     </header>
   )
 }

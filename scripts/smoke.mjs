@@ -119,7 +119,7 @@ process.on('exit', killPreview)
  */
 async function assertTopLayout(p, label) {
   const issues = await p.evaluate(() => {
-    const sels = ['.qh-header-brand', '.qh-header-quiz', '.qh-header-story', '.qh-compass', '.qh-flow-play']
+    const sels = ['.qh-header-brand', '.qh-header-quiz', '.qh-header-story', '.qh-header-tools', '.qh-compass', '.qh-flow-play']
     const boxes = []
     for (const sel of sels) {
       const el = document.querySelector(sel)
@@ -245,6 +245,7 @@ try {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
+    acceptDownloads: true, // 成績卡下載事件斷言
   })
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   page.on('console', (m) => {
@@ -373,6 +374,38 @@ try {
   )
   console.log('✓ 循經導引可暫停')
 
+  //「/」開搜尋盤 → 輸入拼音 hegu → Enter → 直達合谷（面板 + 相機聚焦）
+  await page.keyboard.press('/')
+  await page.waitForSelector('.qh-search-input', { timeout: 4000 })
+  // fill 會自行 focus 元素（開盤的 rAF focus 在無頭下可能還沒生效）
+  await page.fill('.qh-search-input', 'hegu')
+  await page.waitForSelector('.qh-search-hit', { timeout: 4000 })
+  await page.focus('.qh-search-input')
+  await page.keyboard.press('Enter')
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().selectedPointId === 'LI4',
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.locator('.qh-panel-title', { hasText: '合谷' }).waitFor({ timeout: 5000 })
+  await page.waitForTimeout(1500)
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}11b-search-jump.png`)
+  console.log('✓ 11b-search-jump.png（搜尋 hegu → Enter 直達合谷）')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(900)
+
+  // 音景：開啟 → 選穴觸發撥弦（noteCount 增加）→ 關閉
+  await page.locator('.qh-sound').click()
+  await page.waitForFunction(() => window.__QH_SOUND.on() === true, undefined, { timeout: 4000 })
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('HT7', 'HT'))
+  await page.waitForFunction(() => window.__QH_SOUND.notes() > 0, undefined, { timeout: 5000 })
+  console.log(`✓ 音景開啟且有撥弦（ctx=${await page.evaluate(() => window.__QH_SOUND.ctx())}）`)
+  await page.locator('.qh-sound').click()
+  await page.waitForFunction(() => window.__QH_SOUND.on() === false, undefined, { timeout: 4000 })
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(900)
+
   // 學習測驗：入口鈕 → 開始（銅人高亮目標穴）→ 四選一 → 作答回饋 → Esc 結束
   // noWaitAfter：入口鈕於 startQuiz 後即卸載，避免 Playwright 事後 detach 誤報
   await page.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })
@@ -423,6 +456,37 @@ try {
     { timeout: 5000 },
   )
   console.log('✓ Esc 結束測驗')
+
+  // 成績卡：快速完賽一輪 → canvas 合成卡（存檔看圖）→ 真實下載事件
+  await page.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })
+  await page.waitForSelector('.qh-quiz', { timeout: 5000 })
+  for (let i = 0; i < 12; i++) {
+    if (await page.locator('.qh-quiz-result').count()) break
+    await page.locator('.qh-quiz-option').first().click()
+    await page.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
+    await page.locator('.qh-quiz-btn.is-primary').click()
+    await page.waitForTimeout(250)
+  }
+  await page.waitForSelector('.qh-quiz-result', { timeout: 8000 })
+  console.log('✓ 快速完賽 → 成績頁')
+  const cardData = await page.evaluate(() =>
+    window.__QH_CARD(8, 10, '頗有慧根，經穴瞭然於胸。'),
+  )
+  writeFileSync(`${SHOT_DIR}13-score-card.png`, Buffer.from(cardData.split(',')[1], 'base64'))
+  console.log('✓ 13-score-card.png（成績卡合成）')
+  const dlPromise = page.waitForEvent('download', { timeout: 10000 })
+  await page.getByRole('button', { name: /儲存成績卡/ }).click()
+  const dl = await dlPromise
+  if (!/qihuang.*\.png/.test(dl.suggestedFilename())) {
+    throw new Error(`成績卡下載檔名異常：${dl.suggestedFilename()}`)
+  }
+  console.log(`✓ 成績卡下載事件（${dl.suggestedFilename()}）`)
+  await page.keyboard.press('Escape')
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().quizActive === false,
+    undefined,
+    { timeout: 5000 },
+  )
 
   //「重看導覽」：free → 回到滾動敘事頂部
   await page.getByRole('button', { name: '重看導覽' }).click()
@@ -555,6 +619,20 @@ try {
   await settleFrames(mobile, 40)
   await shoot(mobile, `${SHOT_DIR}11-mobile-qiflow.png`)
   console.log('✓ 11-mobile-qiflow.png（手機循經導引可觸發）')
+
+  // 手機搜尋：第二列 ⌕ 鈕 → 輸入「風池」→ 點結果 → 選中 GB20
+  await mobile.locator('.qh-search-btn').click()
+  await mobile.waitForSelector('.qh-search-input', { timeout: 4000 })
+  await mobile.fill('.qh-search-input', '風池')
+  await mobile.locator('.qh-search-hit', { hasText: '風池' }).first().click()
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().selectedPointId === 'GB20',
+    undefined,
+    { timeout: 5000 },
+  )
+  console.log('✓ 手機搜尋 → 風池（GB20）')
+  await mobile.keyboard.press('Escape')
+  await mobile.waitForTimeout(600)
 
   // 手機學習測驗：入口鈕（Header，手機也要點得到）→ 開始 → 作答
   await mobile.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useAppStore } from '@/store/useAppStore'
+import { registerSnapshot } from '@/lib/snapshot'
 import { Stage } from './Stage'
 import { Effects } from './Effects'
 import { CameraRig } from './CameraRig'
@@ -33,6 +34,17 @@ function ReadyFlag() {
   return null
 }
 
+/** 成績卡快照橋：把 renderer/scene/camera 交給 lib/snapshot */
+function SnapshotBridge() {
+  const gl = useThree((s) => s.gl)
+  const scene = useThree((s) => s.scene)
+  const camera = useThree((s) => s.camera)
+  useEffect(() => {
+    registerSnapshot(gl, scene, camera)
+  }, [gl, scene, camera])
+  return null
+}
+
 function ModeFlag() {
   const mode = useAppStore((s) => s.mode)
   const sectionIndex = useAppStore((s) => s.sectionIndex)
@@ -60,6 +72,7 @@ export function Experience() {
       <DebugHelpers />
       <ReadyFlag />
       <ModeFlag />
+      <SnapshotBridge />
     </>
   )
 }

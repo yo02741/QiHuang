@@ -243,10 +243,11 @@ html {
   opacity: 1;
   transform: none;
 }
-/* header 本體不擋事件（fixed 橫幅）；顯示時只有品牌鈕與導覽鈕可點 */
+/* header 本體不擋事件（fixed 橫幅）；顯示時只有其內的按鈕可點 */
 .qh-header.is-visible .qh-header-brand,
 .qh-header.is-visible .qh-header-story,
-.qh-header.is-visible .qh-header-quiz {
+.qh-header.is-visible .qh-header-quiz,
+.qh-header.is-visible .qh-header-tools button {
   pointer-events: auto;
 }
 .qh-header-brand {
@@ -310,6 +311,168 @@ html {
   background: rgba(227, 179, 65, 0.2);
   border-color: var(--gold);
   box-shadow: 0 0 16px rgba(227, 179, 65, 0.25);
+}
+
+/* header 工具列（音景/搜尋等小圓鈕）；actions 缺席時自己靠右 */
+.qh-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+.qh-header-brand + .qh-header-tools {
+  margin-left: auto;
+}
+.qh-sound {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: 15px;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.qh-sound::after {
+  /* 關閉狀態的斜線 */
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 1.5px;
+  background: var(--ink-dim);
+  transform: rotate(-45deg);
+  transition: opacity 0.2s;
+}
+.qh-sound.is-on {
+  color: var(--gold);
+  border-color: var(--panel-line);
+  background: rgba(227, 179, 65, 0.1);
+  box-shadow: 0 0 12px rgba(227, 179, 65, 0.18);
+}
+.qh-sound.is-on::after {
+  opacity: 0;
+}
+.qh-sound:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.qh-search-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.qh-search-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ===== 搜尋盤（command palette） ===== */
+.qh-search-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 0;
+  background: rgba(11, 14, 18, 0.6);
+  pointer-events: auto;
+}
+.qh-search {
+  width: min(460px, 100%);
+  padding: 14px 14px 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  animation: qh-slide-up 0.3s var(--ease-out);
+}
+.qh-search-input {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  background: rgba(227, 179, 65, 0.06);
+  border: 1px solid var(--panel-line);
+  border-radius: 9px;
+  outline: none;
+}
+.qh-search-input:focus {
+  border-color: var(--gold);
+}
+.qh-search-results {
+  max-height: 46vh;
+  overflow-y: auto;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: thin;
+}
+.qh-search-hit {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 10px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.qh-search-hit.is-cursor {
+  background: rgba(227, 179, 65, 0.12);
+}
+.qh-search-kind {
+  flex: none;
+  padding: 1px 7px;
+  font-size: 10.5px;
+  color: var(--ink-dim);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 99px;
+}
+.qh-search-hit b {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.qh-search-hit i {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.qh-search-empty {
+  margin: 10px 4px;
+  font-size: 13.5px;
+  color: var(--ink-dim);
+}
+.qh-search-hint {
+  margin: 8px 4px 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+@media (max-width: 768px) {
+  .qh-search-backdrop {
+    padding-top: 8vh;
+  }
+  .qh-search-hint {
+    display: none; /* 觸控裝置沒鍵盤提示的必要 */
+  }
 }
 
 .qh-footer {
@@ -782,6 +945,14 @@ html {
     padding: 5px 11px;
     font-size: 11.5px;
     letter-spacing: 0.06em;
+  }
+  /* 工具列移到第二列右側（第一列在 320px 塞不下第三顆鈕；
+     第二列右側空著：循經導引靠左、羅盤置中、工具靠右） */
+  .qh-header-tools {
+    position: absolute;
+    top: 54px;
+    right: 10px;
+    margin-left: 0;
   }
   /* 手機空間有限：底部警語不顯示（landing 文案與 README 仍有免責聲明） */
   .qh-footer {
@@ -1435,8 +1606,9 @@ html {
 }
 .qh-quiz-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 .qh-quiz-actions .qh-quiz-btn {
   align-self: auto;

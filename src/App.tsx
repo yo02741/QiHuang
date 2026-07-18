@@ -12,6 +12,7 @@ import { StepNav } from '@/ui/StepNav'
 import { ViewCompass } from '@/ui/ViewCompass'
 import { FlowClock } from '@/ui/FlowClock'
 import { QuizPanel } from '@/ui/QuizPanel'
+import { SearchPalette } from '@/ui/SearchPalette'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { SECTION_INDEX } from '@/data/sections'
@@ -41,9 +42,10 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       const {
-        quizActive, selectedPointId, selectedMeridianId, selectedSymptomId, selectedComboId, actions,
+        searchOpen, quizActive, selectedPointId, selectedMeridianId, selectedSymptomId, selectedComboId, actions,
       } = useAppStore.getState()
-      if (quizActive) actions.endQuiz()
+      if (searchOpen) actions.setSearchOpen(false)
+      else if (quizActive) actions.endQuiz()
       else if (selectedPointId) actions.selectPoint(null)
       else if (selectedComboId) actions.selectCombo(null)
       else if (selectedSymptomId) actions.selectSymptom(null)
@@ -110,6 +112,7 @@ export default function App() {
         <ViewCompass />
         <FlowClock />
         <QuizGate />
+        <SearchPalette />
         <Footer />
       </div>
     </>
