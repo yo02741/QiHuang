@@ -513,9 +513,13 @@ try {
 
   // ── 行動視口（390×844）── 底部文案卡 / 捲動 / 選穴抽屜
   // SwiftShader 下兩個 WebGL context 併行會互相餓死，故桌機分頁已先關
+  // isMobile+hasTouch：媒體環境成為 hover:none / pointer:coarse，
+  // 才能驗證「hover 樣式只給滑鼠裝置」的媒體閘（黏性 hover 回歸防護）
   const mobile = await browser.newPage({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
   })
   mobile.on('pageerror', (e) => errors.push(`mobile pageerror: ${e.message}`))
   mobile.on('console', (m) => {
@@ -650,6 +654,22 @@ try {
   await mobile.locator('.qh-quiz-option').first().click()
   await mobile.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
   console.log('✓ 手機測驗作答回饋顯示')
+
+  // 黏性 hover 回歸驗證（實機曾發生：下一題的選項殘留 hover 金框，像已選取）
+  const hoverNone = await mobile.evaluate(() => matchMedia('(hover: none)').matches)
+  if (!hoverNone) throw new Error('mobile 模擬應為 hover:none（isMobile/hasTouch 未生效）')
+  await mobile.locator('.qh-quiz-btn.is-primary').click() // 下一題（點擊處常與選項區重疊）
+  await mobile.waitForSelector('.qh-quiz[data-type="symptom"]', { timeout: 5000 })
+  await mobile.waitForTimeout(400)
+  const stickyGold = await mobile.evaluate(() => {
+    for (const el of document.querySelectorAll('.qh-quiz-option')) {
+      const c = getComputedStyle(el).borderColor
+      if (c.includes('227') && c.includes('179')) return true // --gold #E3B341
+    }
+    return false
+  })
+  if (stickyGold) throw new Error('觸控裝置出現黏性 hover 金框（未作答選項帶 hover 樣式）')
+  console.log('✓ 觸控無黏性 hover（新題選項無殘留金框）')
   await mobile.close()
 
   if (errors.length) {

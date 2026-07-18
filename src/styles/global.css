@@ -219,10 +219,13 @@ html {
   cursor: pointer;
   transition: all 0.35s var(--ease-out);
 }
-.qh-free-enter:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-free-enter:hover {
   background: rgba(227, 179, 65, 0.1);
   border-color: var(--gold);
   box-shadow: 0 0 24px rgba(227, 179, 65, 0.25);
+  }
 }
 
 /* ===== Header / Footer ===== */
@@ -290,9 +293,12 @@ html {
   transition: all 0.25s;
   white-space: nowrap; /* 空間不足時整顆縮小，絕不直排折行 */
 }
-.qh-header-story:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-header-story:hover {
   color: var(--gold);
   border-color: var(--panel-line);
+  }
 }
 .qh-header-quiz {
   padding: 6px 16px;
@@ -307,10 +313,13 @@ html {
   transition: all 0.25s;
   white-space: nowrap;
 }
-.qh-header-quiz:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-header-quiz:hover {
   background: rgba(227, 179, 65, 0.2);
   border-color: var(--gold);
   box-shadow: 0 0 16px rgba(227, 179, 65, 0.25);
+  }
 }
 
 /* header 工具列（音景/搜尋等小圓鈕）；actions 缺席時自己靠右 */
@@ -356,9 +365,12 @@ html {
 .qh-sound.is-on::after {
   opacity: 0;
 }
-.qh-sound:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-sound:hover {
   border-color: var(--gold);
   color: var(--gold);
+  }
 }
 .qh-search-btn {
   width: 32px;
@@ -374,9 +386,12 @@ html {
   cursor: pointer;
   transition: all 0.25s;
 }
-.qh-search-btn:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-search-btn:hover {
   border-color: var(--gold);
   color: var(--gold);
+  }
 }
 
 /* ===== 搜尋盤（command palette） ===== */
@@ -562,8 +577,11 @@ html {
   cursor: pointer;
   transition: all 0.2s;
 }
-.qh-explore-tab:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-explore-tab:hover {
   color: var(--ink);
+  }
 }
 .qh-explore-tab.is-active {
   color: var(--gold);
@@ -592,8 +610,11 @@ html {
   transition: all 0.2s;
   white-space: nowrap;
 }
-.qh-meridian-btn:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-meridian-btn:hover {
   background: rgba(227, 179, 65, 0.08);
+  }
 }
 .qh-meridian-btn.is-active {
   background: rgba(227, 179, 65, 0.12);
@@ -664,9 +685,12 @@ html {
   border-radius: 50%;
   cursor: pointer;
 }
-.qh-panel-close:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-panel-close:hover {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.06);
+  }
 }
 /* 手機迷你卡的把手條（桌機恆隱藏；手機兩態皆顯示於卡片頂緣，見 media 區塊） */
 .qh-panel-handle {
@@ -788,9 +812,12 @@ html {
   cursor: pointer;
   transition: all 0.2s;
 }
-.qh-symptom-chip:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-symptom-chip:hover {
   border-color: var(--gold);
   color: var(--gold);
+  }
 }
 /* 複製深連結 */
 .qh-copy-link {
@@ -806,9 +833,12 @@ html {
   transition: all 0.2s;
   white-space: nowrap;
 }
-.qh-copy-link:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-copy-link:hover {
   color: var(--gold);
   border-color: var(--panel-line);
+  }
 }
 .qh-panel-points {
   display: flex;
@@ -827,9 +857,12 @@ html {
   cursor: pointer;
   transition: all 0.2s;
 }
-.qh-point-btn:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-point-btn:hover {
   border-color: var(--gold);
   color: var(--gold);
+  }
 }
 .qh-point-btn b {
   font-family: var(--font-display);
@@ -1191,8 +1224,11 @@ html {
   pointer-events: auto;
   transition: color 0.25s, border-color 0.25s, background 0.25s;
 }
-.qh-flowclock-branch:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-flowclock-branch:hover {
   color: var(--ink);
+  }
 }
 .qh-flowclock-branch.is-now {
   color: var(--gold);
@@ -1246,10 +1282,13 @@ html {
   white-space: nowrap;
   transition: all 0.25s var(--ease-out);
 }
-.qh-flow-play:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-flow-play:hover {
   border-color: var(--gold);
   background: rgba(227, 179, 65, 0.12);
   box-shadow: 0 0 18px rgba(227, 179, 65, 0.22);
+  }
 }
 .qh-flow-play.is-playing {
   color: #1a1206;
@@ -1472,9 +1511,12 @@ html {
   border-radius: 50%;
   cursor: pointer;
 }
-.qh-quiz-quit:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-quiz-quit:hover {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.06);
+  }
 }
 .qh-quiz-question {
   margin: 0 0 14px;
@@ -1502,10 +1544,14 @@ html {
   border-radius: 9px;
   cursor: pointer;
   transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
 }
-.qh-quiz-option:hover:not(:disabled) {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-quiz-option:hover:not(:disabled) {
   border-color: var(--gold);
   background: rgba(227, 179, 65, 0.14);
+  }
 }
 .qh-quiz-option:disabled {
   cursor: default;
@@ -1561,18 +1607,24 @@ html {
   cursor: pointer;
   transition: all 0.2s;
 }
-.qh-quiz-btn:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-quiz-btn:hover {
   border-color: var(--gold);
   color: var(--gold);
+  }
 }
 .qh-quiz-btn.is-primary {
   color: #1a1206;
   background: linear-gradient(var(--gold), #caa032);
   border-color: var(--gold);
 }
-.qh-quiz-btn.is-primary:hover {
+/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
+@media (hover: hover) {
+  .qh-quiz-btn.is-primary:hover {
   box-shadow: 0 0 18px rgba(227, 179, 65, 0.35);
   color: #1a1206;
+  }
 }
 /* 結果卡 */
 .qh-quiz-result {
