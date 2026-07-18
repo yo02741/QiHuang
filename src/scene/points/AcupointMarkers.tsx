@@ -52,6 +52,7 @@ interface MarkerInstance {
 }
 
 const REST_GOLD = new Color('#D9B36C')
+const QUIZ_GOLD = new Color('#FFF3D0') // 測驗目標：中性亮金白，不洩漏經絡色
 const VISUAL_R = 0.008
 const HIT_R = 0.02
 
@@ -91,17 +92,19 @@ export function AcupointMarkers() {
   const tmpS = useMemo(() => new Vector3(), [])
   const tmpC = useMemo(() => new Color(), [])
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const mesh = visualRef.current
     const hit = hitRef.current
     if (!mesh || !hit) return
     const {
       hoveredPointId, hoveredSide, selectedPointId, selectedMeridianId,
       selectedSymptomId, selectedComboId, mode, sectionIndex, rawProgress, spotlightPointId,
+      quizActive, quizTargetId, quizTargetSide,
     } = useAppStore.getState()
 
     const k = 1 - Math.exp(-delta / 0.12) // 統一的 damp 係數
     const storyLight = mode === 'story' && selectedPointId === null
+    const quizPulse = 2.2 + 0.55 * Math.sin(clock.elapsedTime * 4) // 測驗目標脈動
     const sectionProgress = rawProgress - sectionIndex
     // free 模式的症狀 / 配穴點亮集合（互斥，最多一個有值）
     const litSet = selectedSymptomId
@@ -119,7 +122,16 @@ export function AcupointMarkers() {
 
       let targetScale = 1
       tmpC.copy(inst.baseColor)
-      if (isSelected) {
+      if (quizActive) {
+        // 測驗：只有本題目標中性亮金脈動（不洩漏經絡色），其餘全暗
+        if (inst.pointId === quizTargetId && inst.side === quizTargetSide) {
+          targetScale = quizPulse
+          tmpC.copy(QUIZ_GOLD).multiplyScalar(3.2)
+        } else {
+          targetScale = 0.5
+          tmpC.copy(REST_GOLD).multiplyScalar(0.08)
+        }
+      } else if (isSelected) {
         targetScale = 2.4
         tmpC.multiplyScalar(3.5)
       } else if (isHovered) {
@@ -194,6 +206,7 @@ export function AcupointMarkers() {
   const onOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
     if (e.instanceId === undefined) return
+    if (useAppStore.getState().quizActive) return // 測驗中不 hover，避免透露
     const inst = instances[e.instanceId]
     useAppStore.getState().actions.hoverPoint(inst.pointId, inst.side)
     setHovering(true)
@@ -205,6 +218,7 @@ export function AcupointMarkers() {
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (e.instanceId === undefined) return
+    if (useAppStore.getState().quizActive) return // 測驗中點銅人不選穴（用選項作答）
     const inst = instances[e.instanceId]
     useAppStore.getState().actions.selectPoint(inst.pointId, inst.meridianId, inst.side)
   }

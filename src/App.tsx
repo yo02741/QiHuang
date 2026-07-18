@@ -11,9 +11,16 @@ import { StorySections } from '@/ui/StorySections'
 import { StepNav } from '@/ui/StepNav'
 import { ViewCompass } from '@/ui/ViewCompass'
 import { FlowClock } from '@/ui/FlowClock'
+import { QuizPanel } from '@/ui/QuizPanel'
 import { useAppStore } from '@/store/useAppStore'
 import { ACUPOINT_MAP } from '@/data/acupoints'
 import { SECTION_INDEX } from '@/data/sections'
+
+/** 依 quizActive 掛載/卸載 QuizPanel：每次進測驗都是全新一輪（首題 effect 觸發） */
+function QuizGate() {
+  const quizActive = useAppStore((s) => s.quizActive)
+  return quizActive ? <QuizPanel /> : null
+}
 
 /**
  * 版型三層：fixed 全螢幕 canvas（底）→ 文流滾動軌道 StorySections（中，
@@ -33,9 +40,11 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      const { selectedPointId, selectedMeridianId, selectedSymptomId, selectedComboId, actions } =
-        useAppStore.getState()
-      if (selectedPointId) actions.selectPoint(null)
+      const {
+        quizActive, selectedPointId, selectedMeridianId, selectedSymptomId, selectedComboId, actions,
+      } = useAppStore.getState()
+      if (quizActive) actions.endQuiz()
+      else if (selectedPointId) actions.selectPoint(null)
       else if (selectedComboId) actions.selectCombo(null)
       else if (selectedSymptomId) actions.selectSymptom(null)
       else if (selectedMeridianId) actions.selectMeridian(null)
@@ -100,6 +109,7 @@ export default function App() {
         <PointPanel />
         <ViewCompass />
         <FlowClock />
+        <QuizGate />
         <Footer />
       </div>
     </>

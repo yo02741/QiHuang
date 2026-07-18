@@ -34,13 +34,14 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ExplorePanel() {
   const mode = useAppStore((s) => s.mode)
+  const quizActive = useAppStore((s) => s.quizActive)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
   const selectedSymptomId = useAppStore((s) => s.selectedSymptomId)
   const selectedComboId = useAppStore((s) => s.selectedComboId)
   const { selectMeridian, selectSymptom, selectCombo } = useAppStore((s) => s.actions)
   const [tab, setTab] = useState<Tab>('meridian')
 
-  if (mode !== 'free') return null
+  if (mode !== 'free' || quizActive) return null
 
   // 症狀依分組排列（詞彙表已按組排序）
   let lastGroup = ''

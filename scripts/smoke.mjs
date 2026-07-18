@@ -337,6 +337,34 @@ try {
   )
   console.log('✓ 循經導引可暫停')
 
+  // 學習測驗：入口鈕 → 開始（銅人高亮目標穴）→ 四選一 → 作答回饋 → Esc 結束
+  // noWaitAfter：入口鈕於 startQuiz 後即卸載，避免 Playwright 事後 detach 誤報
+  await page.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().quizActive === true &&
+          window.__QH_STORE.getState().quizTargetId !== null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.waitForSelector('.qh-quiz', { timeout: 5000 })
+  const quizOpts = await page.locator('.qh-quiz-option').count()
+  if (quizOpts !== 4) throw new Error(`測驗選項應為 4，實際 ${quizOpts}`)
+  await page.waitForTimeout(1800) // 鏡頭聚焦 + 標記脈動
+  await settleFrames(page, 40)
+  await shoot(page, `${SHOT_DIR}12-quiz.png`)
+  console.log('✓ 12-quiz.png（學習測驗・四選一）')
+  await page.locator('.qh-quiz-option').first().click()
+  await page.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
+  await page.getByText('正解：').first().waitFor({ timeout: 5000 })
+  console.log('✓ 測驗作答回饋與正解顯示')
+  await page.keyboard.press('Escape')
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().quizActive === false,
+    undefined,
+    { timeout: 5000 },
+  )
+  console.log('✓ Esc 結束測驗')
+
   //「重看導覽」：free → 回到滾動敘事頂部
   await page.getByRole('button', { name: '重看導覽' }).click()
   await page.waitForSelector('body[data-qh-mode="story"]', { timeout: 5000 })
@@ -466,6 +494,23 @@ try {
   await settleFrames(mobile, 40)
   await shoot(mobile, `${SHOT_DIR}11-mobile-qiflow.png`)
   console.log('✓ 11-mobile-qiflow.png（手機循經導引可觸發）')
+
+  // 手機學習測驗：入口鈕（Header，手機也要點得到）→ 開始 → 作答
+  await mobile.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })
+  await mobile.waitForFunction(
+    () => window.__QH_STORE.getState().quizActive === true &&
+          window.__QH_STORE.getState().quizTargetId !== null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await mobile.waitForSelector('.qh-quiz', { timeout: 5000 })
+  await mobile.waitForTimeout(1800)
+  await settleFrames(mobile, 40)
+  await shoot(mobile, `${SHOT_DIR}12-mobile-quiz.png`)
+  console.log('✓ 12-mobile-quiz.png（手機學習測驗）')
+  await mobile.locator('.qh-quiz-option').first().click()
+  await mobile.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
+  console.log('✓ 手機測驗作答回饋顯示')
   await mobile.close()
 
   if (errors.length) {

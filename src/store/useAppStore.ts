@@ -39,6 +39,9 @@ interface AppState {
   xray: boolean
   qiFlowPlaying: boolean                // 經絡氣流循行動畫播放中（free 模式）
   flowMeridianId: MeridianId | null     // 當前循行到的經絡（QiFlow 場景低頻寫入）
+  quizActive: boolean                   // 學習測驗模式進行中（free 模式）
+  quizTargetId: string | null           // 本題要猜的穴位（銅人高亮+鏡頭聚焦，不觸發 xray）
+  quizTargetSide: 'L' | 'R'
   debug: boolean
   actions: {
     /** StorySections 的 scroll handler 專用（rAF 節流後呼叫） */
@@ -56,6 +59,12 @@ interface AppState {
     toggleQiFlow(): void
     /** QiFlow 場景每換一條經絡時回寫（低頻，供時辰鐘/經絡線訂閱） */
     setFlowMeridian(id: MeridianId): void
+    /** 進入學習測驗（清空其他選取與播放；題目由 QuizPanel 產生後 setQuizTarget） */
+    startQuiz(): void
+    /** QuizPanel 產生每一題時設定要猜的穴位（銅人高亮+鏡頭聚焦） */
+    setQuizTarget(id: string, side: 'L' | 'R'): void
+    /** 結束測驗，回自由探索 */
+    endQuiz(): void
     reset(): void
   }
 }
@@ -82,6 +91,9 @@ export const useAppStore = create<AppState>()((set) => ({
   xray: false,
   qiFlowPlaying: false,
   flowMeridianId: null,
+  quizActive: false,
+  quizTargetId: null,
+  quizTargetSide: 'L',
   debug,
   actions: {
     setScroll: (rawProgress, velocity) =>
@@ -104,6 +116,8 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedComboId: null,
         xray: false,
         qiFlowPlaying: false,
+        quizActive: false,
+        quizTargetId: null,
       }),
     // 經絡 / 症狀 / 配穴 三種瀏覽互斥（各自選取時清掉其他兩類與選穴，並停止循經播放）
     selectMeridian: (id) =>
@@ -158,6 +172,19 @@ export const useAppStore = create<AppState>()((set) => ({
             },
       ),
     setFlowMeridian: (id) => set({ flowMeridianId: id }),
+    startQuiz: () =>
+      set({
+        quizActive: true,
+        quizTargetId: null,
+        selectedPointId: null,
+        selectedMeridianId: null,
+        selectedSymptomId: null,
+        selectedComboId: null,
+        xray: false,
+        qiFlowPlaying: false,
+      }),
+    setQuizTarget: (id, side) => set({ quizTargetId: id, quizTargetSide: side }),
+    endQuiz: () => set({ quizActive: false, quizTargetId: null }),
     reset: () =>
       set({
         selectedPointId: null,

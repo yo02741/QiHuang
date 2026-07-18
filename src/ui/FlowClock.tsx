@@ -20,6 +20,7 @@ export function FlowClock() {
   const mode = useAppStore((s) => s.mode)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
   const selectMeridian = useAppStore((s) => s.actions.selectMeridian)
+  const quizActive = useAppStore((s) => s.quizActive)
   const qiFlowPlaying = useAppStore((s) => s.qiFlowPlaying)
   const flowMeridianId = useAppStore((s) => s.flowMeridianId)
   const toggleQiFlow = useAppStore((s) => s.actions.toggleQiFlow)
@@ -31,7 +32,7 @@ export function FlowClock() {
     return () => clearInterval(t)
   }, [])
 
-  if (mode !== 'free') return null
+  if (mode !== 'free' || quizActive) return null
 
   const timeSlot = currentFlowSlot(hour)
   // 循經播放中：鐘面高亮跟隨氣流；否則跟隨真實時辰

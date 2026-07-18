@@ -39,6 +39,7 @@ function CopyLinkButton({ pointId }: { pointId: string }) {
 
 export function PointPanel() {
   const mode = useAppStore((s) => s.mode)
+  const quizActive = useAppStore((s) => s.quizActive)
   const selectedPointId = useAppStore((s) => s.selectedPointId)
   const spotlightPointId = useAppStore((s) => s.spotlightPointId)
   const selectedMeridianId = useAppStore((s) => s.selectedMeridianId)
@@ -71,8 +72,9 @@ export function PointPanel() {
       : null
 
   // story 模式只有穴位頁（經絡/症狀/配穴選單屬於自由探索）
+  // 測驗中不顯示詳情面板（以免洩漏答案）
   const open = Boolean(point || (mode === 'free' && (combo || symptom || meridian)))
-  if (!open) return null
+  if (quizActive || !open) return null
 
   const close = () => {
     if (point) selectPoint(null)

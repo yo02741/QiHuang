@@ -254,20 +254,26 @@ export function CameraRig() {
   })
 
   // 點穴聚焦 / 取消復位（僅自由探索：story 模式選穴不動相機，維持敘事視角）
+  // 聚焦目標：測驗進行中用 quizTarget（不觸發 xray），否則用 selectedPoint
+  const focusOf = (s: ReturnType<typeof useAppStore.getState>) =>
+    s.quizActive
+      ? { id: s.quizTargetId, side: s.quizTargetSide }
+      : { id: s.selectedPointId, side: s.selectedSide }
   useEffect(
     () =>
       useAppStore.subscribe((s, prev) => {
-        if (s.selectedPointId === prev.selectedPointId && s.selectedSide === prev.selectedSide)
-          return
+        const cur = focusOf(s)
+        const old = focusOf(prev)
+        if (cur.id === old.id && cur.side === old.side) return
         if (s.mode === 'story') return
         const controls = ref.current
         if (!controls) return
         const token = ++transitionToken.current
 
-        if (s.selectedPointId) {
-          const point = ACUPOINT_MAP.get(s.selectedPointId)
+        if (cur.id) {
+          const point = ACUPOINT_MAP.get(cur.id)
           if (!point) return
-          const { position: p, normal } = resolveAnchor(point.anchor, s.selectedSide)
+          const { position: p, normal } = resolveAnchor(point.anchor, cur.side)
           // 鏡頭方向：anchor 法線（內側穴位會指向軀幹）混合「離身體中軸的
           // 水平徑向」，確保鏡頭一定落在身體外側
           const radial = new Vector3(p.x, 0, p.z)
