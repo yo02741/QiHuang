@@ -1611,6 +1611,31 @@ html {
   font-size: 22px;
   color: var(--ink-dim);
 }
+/* 每題 ✓✗ 一覽（依作答順序）；詳情看成績卡 */
+.qh-quiz-result-marks {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin: 8px 0 2px;
+}
+.qh-quiz-result-marks span {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  border-radius: 50%;
+}
+.qh-quiz-result-marks .is-ok {
+  color: #7fd6ac;
+  background: rgba(63, 164, 122, 0.18);
+  border: 1px solid rgba(63, 164, 122, 0.55);
+}
+.qh-quiz-result-marks .is-no {
+  color: #f0857b;
+  background: rgba(224, 69, 58, 0.16);
+  border: 1px solid rgba(224, 69, 58, 0.55);
+}
 .qh-quiz-result-grade {
   margin: 4px 0 16px;
   font-size: 14px;

@@ -458,8 +458,27 @@ try {
   }
   await page.waitForSelector('.qh-quiz-result', { timeout: 8000 })
   console.log('✓ 快速完賽 → 成績頁')
+  // 結果頁 ✓✗ 標記列：每題一顆、共 10 顆
+  const markCount = await page.locator('.qh-quiz-result-marks span').count()
+  if (markCount !== 10) throw new Error(`結果頁 ✓✗ 標記應為 10 顆，實際 ${markCount}`)
+  console.log('✓ 結果頁 ✓✗ 標記列（10 題逐題呈現）')
+  // 等鏡頭飛回 HOME 全身視角再產卡，快照才含頭部（真實使用者按鈕前鏡頭早已落定）
+  await page.waitForTimeout(2200)
+  await settleFrames(page, 40)
+  // 固定一組代表性作答明細產卡（8 對 2 錯、兩題型混排），供人工看圖
   const cardData = await page.evaluate(() =>
-    window.__QH_CARD(8, 10, '頗有慧根，經穴瞭然於胸。'),
+    window.__QH_CARD(8, 10, '頗有慧根，經穴瞭然於胸。', [
+      { ok: true, text: '合谷・LI4' },
+      { ok: true, text: '頭痛 → 風池' },
+      { ok: false, text: '足三里・ST36' },
+      { ok: true, text: '失眠 → 神門' },
+      { ok: true, text: '內關・PC6' },
+      { ok: false, text: '胃脹 → 中脘' },
+      { ok: true, text: '三陰交・SP6' },
+      { ok: true, text: '腰痠 → 委中' },
+      { ok: true, text: '曲池・LI11' },
+      { ok: true, text: '眼睛疲勞 → 睛明' },
+    ]),
   )
   writeFileSync(`${SHOT_DIR}13-score-card.png`, Buffer.from(cardData.split(',')[1], 'base64'))
   console.log('✓ 13-score-card.png（成績卡合成）')

@@ -4,6 +4,7 @@ import { MERIDIAN_MAP } from '@/data/meridians'
 import { SYMPTOMS } from '@/data/symptoms'
 import { useAppStore } from '@/store/useAppStore'
 import { shareOrDownloadCard } from '@/lib/scoreCard'
+import type { CardResult } from '@/lib/scoreCard'
 import type { Side } from '@/lib/anchors'
 import type { SymptomId } from '@/data/types'
 
@@ -117,6 +118,8 @@ export function QuizPanel() {
   const [q, setQ] = useState<Question | null>(null)
   const [answered, setAnswered] = useState<string | null>(null)
   const [finished, setFinished] = useState(false)
+  // 每題作答紀錄：結果頁 ✓✗ 標記列 + 成績卡作答明細
+  const [results, setResults] = useState<CardResult[]>([])
 
   const newQuestion = (r: number) => {
     const nq = makeQuestion(r)
@@ -135,7 +138,20 @@ export function QuizPanel() {
   const answer = (id: string) => {
     if (answered || !q) return
     setAnswered(id)
-    if (id === q.correctId) setScore((s) => s + 1)
+    const ok = id === q.correctId
+    if (ok) setScore((s) => s + 1)
+    const correct = ACUPOINT_MAP.get(q.correctId)!
+    setResults((r) => [
+      ...r,
+      {
+        ok,
+        // 卡片明細：依症選穴呈現「症狀 → 穴名」，看穴猜名呈現「穴名・代碼」
+        text:
+          q.type === 'symptom'
+            ? `${q.symptomName} → ${correct.name}`
+            : `${correct.name}・${correct.code}`,
+      },
+    ])
     // 依症選穴：揭示正解位置（亮穴 + 鏡頭飛過去）
     if (q.type === 'symptom') setQuizTarget(q.correctId, q.side)
   }
@@ -153,6 +169,7 @@ export function QuizPanel() {
     setScore(0)
     setRound(0)
     setFinished(false)
+    setResults([])
     newQuestion(0)
   }
 
@@ -164,12 +181,19 @@ export function QuizPanel() {
           <p className="qh-quiz-result-score">
             <b>{score}</b> <span>/ {TOTAL}</span>
           </p>
+          <div className="qh-quiz-result-marks" aria-label="每題作答結果">
+            {results.map((r, i) => (
+              <span key={i} className={r.ok ? 'is-ok' : 'is-no'} title={r.text}>
+                {r.ok ? '✓' : '✗'}
+              </span>
+            ))}
+          </div>
           <p className="qh-quiz-result-grade">{grade(score)}</p>
           <div className="qh-quiz-actions">
             <button
               type="button"
               className="qh-quiz-btn is-primary"
-              onClick={() => void shareOrDownloadCard(score, TOTAL, grade(score))}
+              onClick={() => void shareOrDownloadCard(score, TOTAL, grade(score), results)}
             >
               ⬇ 儲存成績卡
             </button>
