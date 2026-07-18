@@ -112,6 +112,41 @@ const killPreview = () => {
 }
 process.on('exit', killPreview)
 
+/**
+ * 頂部版面幾何斷言：header 品牌/測驗鈕/導覽鈕/羅盤/循經鈕
+ * 兩兩不得重疊、不得折行（高度異常）、不得超出視口。
+ * （實機曾發生：手機 header 折行長高，壓到絕對定位的第二列元素）
+ */
+async function assertTopLayout(p, label) {
+  const issues = await p.evaluate(() => {
+    const sels = ['.qh-header-brand', '.qh-header-quiz', '.qh-header-story', '.qh-compass', '.qh-flow-play']
+    const boxes = []
+    for (const sel of sels) {
+      const el = document.querySelector(sel)
+      if (!el) continue
+      const r = el.getBoundingClientRect()
+      if (r.width < 2 || r.height < 2) continue // 隱藏中不檢查
+      boxes.push({ sel, x: r.x, y: r.y, w: r.width, h: r.height })
+    }
+    const out = []
+    for (const b of boxes) {
+      if (b.h > 48) out.push(`${b.sel} 高 ${Math.round(b.h)}px（疑似折行）`)
+      if (b.x < -1 || b.x + b.w > innerWidth + 1) out.push(`${b.sel} 超出視口寬`)
+    }
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j]
+        const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
+        const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
+        if (ox > 4 && oy > 4) out.push(`${a.sel} 與 ${b.sel} 重疊 ${Math.round(ox)}×${Math.round(oy)}px`)
+      }
+    }
+    return out
+  })
+  if (issues.length) throw new Error(`${label} 頂部版面問題：${issues.join('；')}`)
+  console.log(`✓ ${label} 頂部版面無重疊/折行`)
+}
+
 /** 等到 R3F 再產出 n 幀新畫面（保證 shader 編譯完成且畫面已合成） */
 async function settleFrames(p, n = 30, timeout = 90000) {
   const start = await p.evaluate(() => Number(document.body.dataset.qhFrames ?? 0))
@@ -293,6 +328,7 @@ try {
   await page.keyboard.press('Escape')
   await page.waitForTimeout(1200)
   await settleFrames(page, 30)
+  await assertTopLayout(page, '桌機')
 
   // 症狀反查：選「頭痛」→ 面板列相關穴位、銅人點亮穴位群
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectSymptom('headache'))
@@ -349,14 +385,37 @@ try {
   await page.waitForSelector('.qh-quiz', { timeout: 5000 })
   const quizOpts = await page.locator('.qh-quiz-option').count()
   if (quizOpts !== 4) throw new Error(`測驗選項應為 4，實際 ${quizOpts}`)
+  // 題型交錯：第 1 題（單數）固定為看穴猜名
+  const q1Type = await page.locator('.qh-quiz').getAttribute('data-type')
+  if (q1Type !== 'name') throw new Error(`第 1 題應為看穴猜名，實際 ${q1Type}`)
   await page.waitForTimeout(1800) // 鏡頭聚焦 + 標記脈動
   await settleFrames(page, 40)
   await shoot(page, `${SHOT_DIR}12-quiz.png`)
-  console.log('✓ 12-quiz.png（學習測驗・四選一）')
+  console.log('✓ 12-quiz.png（學習測驗・看穴猜名）')
   await page.locator('.qh-quiz-option').first().click()
   await page.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
   await page.getByText('正解：').first().waitFor({ timeout: 5000 })
   console.log('✓ 測驗作答回饋與正解顯示')
+
+  // 第 2 題（雙數）固定為依症選穴：出題不洩題（target=null）、作答後揭示
+  await page.locator('.qh-quiz-btn.is-primary').click()
+  await page.waitForSelector('.qh-quiz[data-type="symptom"]', { timeout: 5000 })
+  const preTarget = await page.evaluate(() => window.__QH_STORE.getState().quizTargetId)
+  if (preTarget !== null) throw new Error('依症選穴出題時 quizTargetId 應為 null（不洩題）')
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}12b-quiz-symptom.png`)
+  console.log('✓ 12b-quiz-symptom.png（依症選穴・出題不洩題）')
+  await page.locator('.qh-quiz-option').first().click()
+  await page.waitForSelector('.qh-quiz-feedback', { timeout: 5000 })
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().quizTargetId !== null,
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.waitForTimeout(1800) // 揭示正解穴位的運鏡
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}12c-quiz-reveal.png`)
+  console.log('✓ 12c-quiz-reveal.png（作答後揭示正解穴位）')
   await page.keyboard.press('Escape')
   await page.waitForFunction(
     () => window.__QH_STORE.getState().quizActive === false,
@@ -472,6 +531,8 @@ try {
     s.actions.enterFree()
   })
   await mobile.waitForSelector('body[data-qh-mode="free"]', { timeout: 5000 })
+  await mobile.waitForTimeout(900) // header 淡入完成再量測
+  await assertTopLayout(mobile, '手機')
   await mobile.evaluate(() => window.__QH_STORE.getState().actions.selectSymptom('headache'))
   await mobile.getByText('相關穴位').first().waitFor({ timeout: 5000 })
   await mobile.waitForTimeout(1500)
