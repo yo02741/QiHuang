@@ -1,5 +1,4 @@
 import { useAppStore } from '@/store/useAppStore'
-import { SoundToggle } from './SoundToggle'
 
 const NARROW_QUERY = '(max-width: 768px)'
 
@@ -41,8 +40,8 @@ export function Header() {
           </button>
         </div>
       )}
-      <div className="qh-header-tools">
-        {!quizActive && (
+      {!quizActive && (
+        <div className="qh-header-tools">
           <button
             type="button"
             className="qh-search-btn"
@@ -52,9 +51,8 @@ export function Header() {
           >
             ⌕
           </button>
-        )}
-        <SoundToggle />
-      </div>
+        </div>
+      )}
     </header>
   )
 }

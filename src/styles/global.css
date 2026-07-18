@@ -322,7 +322,7 @@ html {
   }
 }
 
-/* header 工具列（音景/搜尋等小圓鈕）；actions 缺席時自己靠右 */
+/* header 工具列（搜尋等小圓鈕）；actions 缺席時自己靠右 */
 .qh-header-tools {
   display: flex;
   align-items: center;
@@ -331,46 +331,6 @@ html {
 }
 .qh-header-brand + .qh-header-tools {
   margin-left: auto;
-}
-.qh-sound {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  position: relative;
-  font-size: 15px;
-  color: var(--ink-dim);
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.25s;
-}
-.qh-sound::after {
-  /* 關閉狀態的斜線 */
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 1.5px;
-  background: var(--ink-dim);
-  transform: rotate(-45deg);
-  transition: opacity 0.2s;
-}
-.qh-sound.is-on {
-  color: var(--gold);
-  border-color: var(--panel-line);
-  background: rgba(227, 179, 65, 0.1);
-  box-shadow: 0 0 12px rgba(227, 179, 65, 0.18);
-}
-.qh-sound.is-on::after {
-  opacity: 0;
-}
-/* 僅在具滑鼠的裝置套用（觸控裝置的黏性 hover 會誤導） */
-@media (hover: hover) {
-  .qh-sound:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  }
 }
 .qh-search-btn {
   width: 32px;

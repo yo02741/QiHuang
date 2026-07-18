@@ -395,17 +395,6 @@ try {
   await page.keyboard.press('Escape')
   await page.waitForTimeout(900)
 
-  // 音景：開啟 → 選穴觸發撥弦（noteCount 增加）→ 關閉
-  await page.locator('.qh-sound').click()
-  await page.waitForFunction(() => window.__QH_SOUND.on() === true, undefined, { timeout: 4000 })
-  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('HT7', 'HT'))
-  await page.waitForFunction(() => window.__QH_SOUND.notes() > 0, undefined, { timeout: 5000 })
-  console.log(`✓ 音景開啟且有撥弦（ctx=${await page.evaluate(() => window.__QH_SOUND.ctx())}）`)
-  await page.locator('.qh-sound').click()
-  await page.waitForFunction(() => window.__QH_SOUND.on() === false, undefined, { timeout: 4000 })
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(900)
-
   // 學習測驗：入口鈕 → 開始（銅人高亮目標穴）→ 四選一 → 作答回饋 → Esc 結束
   // noWaitAfter：入口鈕於 startQuiz 後即卸載，避免 Playwright 事後 detach 誤報
   await page.getByRole('button', { name: /穴位測驗/ }).click({ noWaitAfter: true })

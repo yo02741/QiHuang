@@ -3,7 +3,6 @@ import { ACUPOINTS, ACUPOINT_MAP } from '@/data/acupoints'
 import { MERIDIAN_MAP } from '@/data/meridians'
 import { SYMPTOMS } from '@/data/symptoms'
 import { useAppStore } from '@/store/useAppStore'
-import { soundscape } from '@/lib/soundscape'
 import { shareOrDownloadCard } from '@/lib/scoreCard'
 import type { Side } from '@/lib/anchors'
 import type { SymptomId } from '@/data/types'
@@ -136,12 +135,7 @@ export function QuizPanel() {
   const answer = (id: string) => {
     if (answered || !q) return
     setAnswered(id)
-    if (id === q.correctId) {
-      setScore((s) => s + 1)
-      soundscape.cueCorrect()
-    } else {
-      soundscape.cueWrong()
-    }
+    if (id === q.correctId) setScore((s) => s + 1)
     // 依症選穴：揭示正解位置（亮穴 + 鏡頭飛過去）
     if (q.type === 'symptom') setQuizTarget(q.correctId, q.side)
   }
