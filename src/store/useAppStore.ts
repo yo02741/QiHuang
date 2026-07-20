@@ -4,6 +4,9 @@ import { STORY_SECTIONS, lightThreshold } from '@/data/sections'
 
 export type Mode = 'story' | 'free'
 
+/** 解剖分層：由外而內剝開——銅身（皮）→ 肌肉 → 骨架 */
+export type AnatomyLayer = 'skin' | 'muscle' | 'skeleton'
+
 /** 滾動進度 → 當前章「最新點亮」的穴位（導覽 spotlight，連動詳情面板） */
 function spotlightAt(rawProgress: number): string | null {
   const si = Math.floor(rawProgress)
@@ -37,6 +40,7 @@ interface AppState {
   hoveredPointId: string | null
   hoveredSide: 'L' | 'R'                // tooltip 顯示在被 hover 的那一側
   xray: boolean
+  anatomyLayer: AnatomyLayer            // 解剖分層（free 模式；skin=銅身、muscle=肌、skeleton=骨）
   qiFlowPlaying: boolean                // 經絡氣流循行動畫播放中（free 模式）
   flowMeridianId: MeridianId | null     // 當前循行到的經絡（QiFlow 場景低頻寫入）
   quizActive: boolean                   // 學習測驗模式進行中（free 模式）
@@ -56,6 +60,8 @@ interface AppState {
     selectCombo(id: string | null): void
     selectPoint(id: string | null, meridianId?: MeridianId, side?: 'L' | 'R'): void
     hoverPoint(id: string | null, side?: 'L' | 'R'): void
+    /** 切換解剖分層（皮/肌/骨）；骨架層可視化骨度分寸 */
+    setAnatomyLayer(layer: AnatomyLayer): void
     /** 切換經絡氣流循行動畫（起播時清空其他選取；QiFlow 場景推進 flowMeridianId） */
     toggleQiFlow(): void
     /** QiFlow 場景每換一條經絡時回寫（低頻，供時辰鐘/經絡線訂閱） */
@@ -92,6 +98,7 @@ export const useAppStore = create<AppState>()((set) => ({
   hoveredPointId: null,
   hoveredSide: 'L',
   xray: false,
+  anatomyLayer: 'skin',
   qiFlowPlaying: false,
   flowMeridianId: null,
   quizActive: false,
@@ -119,6 +126,7 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedSymptomId: null,
         selectedComboId: null,
         xray: false,
+        anatomyLayer: 'skin',
         qiFlowPlaying: false,
         quizActive: false,
         quizTargetId: null,
@@ -161,6 +169,7 @@ export const useAppStore = create<AppState>()((set) => ({
         qiFlowPlaying: id !== null ? false : s.qiFlowPlaying,
       })),
     hoverPoint: (id, side = 'L') => set({ hoveredPointId: id, hoveredSide: side }),
+    setAnatomyLayer: (layer) => set({ anatomyLayer: layer }),
     toggleQiFlow: () =>
       set((s) =>
         s.qiFlowPlaying
@@ -194,6 +203,7 @@ export const useAppStore = create<AppState>()((set) => ({
       set({
         selectedPointId: null,
         xray: false,
+        anatomyLayer: 'skin',
         selectedMeridianId: null,
         selectedSymptomId: null,
         selectedComboId: null,

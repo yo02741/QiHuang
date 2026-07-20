@@ -7,6 +7,8 @@ import { Stage } from './Stage'
 import { Effects } from './Effects'
 import { CameraRig } from './CameraRig'
 import { BronzeMan } from './bronze/BronzeMan'
+import { Muscle } from './bronze/Muscle'
+import { Skeleton } from './bronze/Skeleton'
 import { DebugHelpers } from './bronze/DebugHelpers'
 import { Organs } from './organs/Organs'
 import { OrganLabels } from './organs/OrganLabels'
@@ -82,6 +84,8 @@ export function Experience() {
       {/* 一起呼吸：銅身與依附其上的臟腑/經絡/穴位/標籤同步縮放，維持貼合 */}
       <BreathGroup>
         <Organs />
+        <Skeleton />
+        <Muscle />
         <BronzeMan />
         <MeridianLines />
         <QiFlow />

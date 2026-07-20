@@ -374,6 +374,39 @@ try {
   )
   console.log('✓ 循經導引可暫停')
 
+  // 解剖分層：銅身 → 肌肉 → 骨骼（骨架與銅身共骨架定義，穴位落在骨上）
+  await page.getByRole('button', { name: '肌肉' }).click()
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().anatomyLayer === 'muscle',
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.waitForTimeout(700)
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}14-layer-muscle.png`)
+  console.log('✓ 14-layer-muscle.png（肌肉層）')
+  await page.getByRole('button', { name: '骨骼' }).click()
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().anatomyLayer === 'skeleton',
+    undefined,
+    { timeout: 5000 },
+  )
+  // 選內關：骨架層上「腕上二寸」標在前臂橈尺骨間（骨度分寸×解剖分層綜效）
+  await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
+  await page.waitForTimeout(1600)
+  await settleFrames(page, 30)
+  await shoot(page, `${SHOT_DIR}14b-layer-skeleton.png`)
+  console.log('✓ 14b-layer-skeleton.png（骨架層・內關標在前臂骨上）')
+  await page.getByRole('button', { name: '銅身' }).click()
+  await page.waitForFunction(
+    () => window.__QH_STORE.getState().anatomyLayer === 'skin',
+    undefined,
+    { timeout: 5000 },
+  )
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(700)
+  console.log('✓ 解剖分層切換（皮／肌／骨）')
+
   //「/」開搜尋盤 → 輸入拼音 hegu → Enter → 直達合谷（面板 + 相機聚焦）
   await page.keyboard.press('/')
   await page.waitForSelector('.qh-search-input', { timeout: 4000 })

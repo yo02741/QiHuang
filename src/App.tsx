@@ -10,6 +10,7 @@ import { Footer } from '@/ui/Footer'
 import { StorySections } from '@/ui/StorySections'
 import { StepNav } from '@/ui/StepNav'
 import { ViewCompass } from '@/ui/ViewCompass'
+import { LayerSwitcher } from '@/ui/LayerSwitcher'
 import { FlowClock } from '@/ui/FlowClock'
 import { QuizPanel } from '@/ui/QuizPanel'
 import { SearchPalette } from '@/ui/SearchPalette'
@@ -110,6 +111,7 @@ export default function App() {
         <StepNav />
         <PointPanel />
         <ViewCompass />
+        <LayerSwitcher />
         <FlowClock />
         <QuizGate />
         <SearchPalette />

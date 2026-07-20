@@ -41,6 +41,14 @@ export const SCROLL = {
 /** tour：導覽 spotlight 的半透視（比點穴 xray 淺，保留銅身形體） */
 export const BODY_OPACITY = { normal: 1.0, xray: 0.22, tour: 0.34, depthWriteThreshold: 0.6 } as const
 
+/** 解剖分層各層目標透明度：剝開時外層淡成輪廓，露出內層 */
+export const LAYER_OPACITY = {
+  skinAtMuscle: 0.16, // 看肌肉時的銅身殘影
+  skinAtSkeleton: 0.09, // 看骨架時的銅身殘影（更淡）
+  muscleFull: 0.96, // 肌肉層本身
+  muscleAtSkeleton: 0.2, // 看骨架時肌肉退成薄影
+} as const
+
 /** 經絡氣流循行動畫（子午流注自動播放） */
 export const QIFLOW = {
   secondsPerMeridian: 2.6, // 一條經絡走完的秒數（12 經一輪約 31s）
