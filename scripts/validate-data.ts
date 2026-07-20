@@ -11,6 +11,7 @@ import { COMBOS } from '../src/data/combos'
 import { PLAIN_NOTES } from '../src/data/plainNotes'
 import { FLOW_ORDER } from '../src/data/flowClock'
 import { resolveAnchor } from '../src/lib/anchors'
+import { cunToT } from '../src/lib/cun'
 import { pointsByRegion } from '../src/lib/regions'
 import { evaluatePose } from '../src/lib/cameraPath'
 
@@ -117,6 +118,31 @@ for (const m of MERIDIANS) {
 }
 for (const p of ACUPOINTS) {
   checkResolved(p.id, p.anchor)
+}
+
+// ── 骨度分寸換算關係鎖定（WHO 比例定位的回歸防護）──
+{
+  // 取肢段穴的沿軸比例 t（非 limb 型回 NaN，讓依賴它的斷言自然失敗）
+  const tOf = (id: string): number => {
+    const a = ACUPOINT_MAP.get(id)?.anchor
+    return a?.kind === 'limb' ? a.t : NaN
+  }
+  const near = (label: string, a: number, b: number) => {
+    if (!(Math.abs(a - b) < 1e-9)) fail(`${label}：${a.toFixed(4)} ≠ ${b.toFixed(4)}`)
+  }
+  // 引擎換算正確：前臂 12 寸，腕上 2 寸 → t = 10/12
+  near('cun 引擎 腕上2寸', cunToT('aboveWrist', 2), (12 - 2) / 12)
+  near('cun 引擎 犢鼻下3寸', cunToT('belowKneeLat', 3), 3 / 16)
+  // 內關/外關同為「腕上二寸」→ 前臂同一比例（相對穴一致性）
+  near('內外關相對(腕上2寸)', tOf('PC6'), tOf('TE5'))
+  near('間使/支溝(腕上3寸)', tOf('PC5'), tOf('TE6'))
+  // 前臂掌側腕上寸序：大陵(腕橫紋) 距腕最近 → 內關(2寸) → 間使(3寸)
+  if (!(tOf('PC7') > tOf('PC6') && tOf('PC6') > tOf('PC5')))
+    fail('前臂掌側寸序錯誤（應 大陵 > 內關 > 間使）')
+  // 手三里在曲池遠端二寸（t 應更靠腕）
+  if (!(tOf('LI10') > tOf('LI11'))) fail('手三里應在曲池遠端（t 較大）')
+  // 足三里近膝（犢鼻下三寸，小腿上段）
+  if (!(tOf('ST36') < 0.35)) fail(`足三里應近膝端（t=${tOf('ST36').toFixed(3)}）`)
 }
 
 // ── 統計 ──
