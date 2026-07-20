@@ -17,6 +17,7 @@ import { QiFlow } from './meridians/QiFlow'
 import { AcupointMarkers } from './points/AcupointMarkers'
 import { PointTooltip } from './points/PointTooltip'
 import { SectionPointLabels } from './points/SectionPointLabels'
+import { SkeletonMeasure } from './points/SkeletonMeasure'
 
 /**
  * 首幀渲染後在 <body> 打標記 + 每 10 幀更新幀數計數，
@@ -92,6 +93,7 @@ export function Experience() {
         <AcupointMarkers />
         <PointTooltip />
         <SectionPointLabels />
+        <SkeletonMeasure />
         <OrganLabels />
       </BreathGroup>
       <Effects />

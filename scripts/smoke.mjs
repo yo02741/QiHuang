@@ -391,12 +391,16 @@ try {
     undefined,
     { timeout: 5000 },
   )
+  // 骨架層常駐肢段量尺（前臂12寸等）
+  await page.waitForSelector('.qh-cun-ruler', { timeout: 5000 })
   // 選內關：骨架層上「腕上二寸」標在前臂橈尺骨間（骨度分寸×解剖分層綜效）
   await page.evaluate(() => window.__QH_STORE.getState().actions.selectPoint('PC6', 'PC'))
+  // 內關寸數標註浮現（骨度分寸被可視化）
+  await page.locator('.qh-cun-callout', { hasText: '腕上2寸' }).waitFor({ timeout: 5000 })
   await page.waitForTimeout(1600)
   await settleFrames(page, 30)
   await shoot(page, `${SHOT_DIR}14b-layer-skeleton.png`)
-  console.log('✓ 14b-layer-skeleton.png（骨架層・內關標在前臂骨上）')
+  console.log('✓ 14b-layer-skeleton.png（骨架層・內關「腕上2寸」標在前臂骨上）')
   await page.getByRole('button', { name: '銅身' }).click()
   await page.waitForFunction(
     () => window.__QH_STORE.getState().anatomyLayer === 'skin',

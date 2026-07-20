@@ -60,6 +60,24 @@ export function cunToT(ref: CunRef, cun: number): number {
   return Math.min(1, Math.max(0, t))
 }
 
+/** 各參照的量向詞與「貼齊橫紋」時的名稱（供骨架層標註） */
+const REF_LABEL: Record<CunRef, { dir: string; crease: string }> = {
+  belowElbow: { dir: '肘下', crease: '肘橫紋' },
+  aboveWrist: { dir: '腕上', crease: '腕橫紋' },
+  belowKneeLat: { dir: '膝下', crease: '膝下' },
+  belowKneeMed: { dir: '膝下', crease: '膝下' },
+  aboveAnkleLat: { dir: '外踝上', crease: '外踝' },
+  aboveAnkleMed: { dir: '內踝上', crease: '內踝' },
+  aboveKneeLat: { dir: '膝上', crease: '膝上' },
+  aboveKneeMed: { dir: '膝上', crease: '膝上' },
+}
+
+/** 生成人類可讀的骨度分寸註記（如「腕上2寸」；貼橫紋者回「腕橫紋」） */
+function cunNoteOf(ref: CunRef, cun: number): string {
+  const { dir, crease } = REF_LABEL[ref]
+  return cun < 0.6 ? crease : `${dir}${cun}寸`
+}
+
 /**
  * 以骨度分寸定位四肢穴位。
  * @param ref   參照解剖標誌（決定肢段與該段寸長）
@@ -71,7 +89,13 @@ export function cunToT(ref: CunRef, cun: number): number {
  */
 export function limbCun(ref: CunRef, cun: number, angle: number, out?: number): BodyAnchor {
   const { segment } = REF_TABLE[ref]
-  const anchor: BodyAnchor = { kind: 'limb', segment, t: cunToT(ref, cun), angle }
+  const anchor: BodyAnchor = {
+    kind: 'limb',
+    segment,
+    t: cunToT(ref, cun),
+    angle,
+    cunNote: cunNoteOf(ref, cun),
+  }
   return out === undefined ? anchor : { ...anchor, out }
 }
 
@@ -97,6 +121,8 @@ export function trunkCunY(cunFromNavel: number): number {
  * 例：關元 CV4「臍下三寸」→ torsoCun(-3, 0)
  */
 export function torsoCun(cunFromNavel: number, az: number, out?: number): BodyAnchor {
-  const anchor: BodyAnchor = { kind: 'torso', y: trunkCunY(cunFromNavel), az }
+  const cunNote =
+    cunFromNavel === 0 ? '臍' : cunFromNavel > 0 ? `臍上${cunFromNavel}寸` : `臍下${-cunFromNavel}寸`
+  const anchor: BodyAnchor = { kind: 'torso', y: trunkCunY(cunFromNavel), az, cunNote }
   return out === undefined ? anchor : { ...anchor, out }
 }

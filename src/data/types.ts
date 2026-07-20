@@ -16,11 +16,11 @@ export type SegmentId = 'upperArm' | 'forearm' | 'hand' | 'thigh' | 'calf' | 'fo
  */
 export type BodyAnchor =
   /** 軀幹車削面：y 高度 + 方位角 az（0=正前，+ 往左），out 為離面法向偏移 */
-  | { kind: 'torso'; y: number; az: number; out?: number }
+  | { kind: 'torso'; y: number; az: number; out?: number; cunNote?: string }
   /** 頭部橢球面：polar 極角（0=頭頂百會），az 同上 */
   | { kind: 'head'; polar: number; az: number; out?: number }
   /** 四肢：沿肢段軸 t∈[0,1]，angle 為繞軸角（0 朝前），out 離面偏移 */
-  | { kind: 'limb'; segment: SegmentId; t: number; angle: number; out?: number }
+  | { kind: 'limb'; segment: SegmentId; t: number; angle: number; out?: number; cunNote?: string }
   /** 逃生口：直接給世界座標（指尖等特殊位置） */
   | { kind: 'point'; pos: [number, number, number] }
 

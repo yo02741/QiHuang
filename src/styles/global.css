@@ -1102,6 +1102,43 @@ html {
   color: var(--ink-dim);
 }
 
+/* ===== 骨架層骨度分寸標註（肢段量尺 + 選穴寸數） ===== */
+.qh-cun-ruler {
+  padding: 2px 9px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #d8c7a0;
+  background: rgba(14, 17, 23, 0.6);
+  border: 1px dashed rgba(216, 199, 160, 0.5);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.qh-cun-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 10px;
+  background: rgba(227, 179, 65, 0.16);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  white-space: nowrap;
+  transform: translateY(-30px);
+  box-shadow: 0 0 16px rgba(227, 179, 65, 0.25);
+  animation: qh-label-in 0.4s var(--ease-out);
+}
+.qh-cun-callout b {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--gold);
+}
+.qh-cun-callout span {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
 /* ===== 視角方位指示器（上方正中，顯眼處） ===== */
 .qh-compass {
   position: absolute;
