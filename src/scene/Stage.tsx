@@ -56,28 +56,36 @@ export function Stage() {
       <color attach="background" args={[COLORS.bg]} />
       <fogExp2 attach="fog" args={[COLORS.bg, 0.09]} />
 
-      <ambientLight intensity={0.15} />
-      <directionalLight position={[2.5, 4, 3]} intensity={1.2} color="#ffe2b8" />
+      <ambientLight intensity={0.14} />
+      <directionalLight position={[2.5, 4, 3]} intensity={1.35} color="#ffe2b8" />
 
-      {/* 鎏金質感的關鍵：三面 Lightformer 打出的離線環境反射 */}
-      <Environment resolution={256} frames={1}>
+      {/*
+        鎏金質感的關鍵：離線 Lightformer 環境反射（不用 preset — 那會 runtime
+        抓 CDN HDRI，違反 CSP 且離線失效）。金屬「像金屬」全靠這些反射源。
+      */}
+      <Environment resolution={384} frames={1}>
+        {/* 頂部大柔光：主反射源，暖白，鋪出銅身縱向高光帶 */}
         <Lightformer
           form="rect"
-          intensity={2}
-          color="#FFD9A0"
-          position={[0, 3, 0]}
+          intensity={2.4}
+          color="#FFE3B0"
+          position={[0, 4, 1]}
           rotation-x={-Math.PI / 2}
-          scale={[4, 4, 1]}
+          scale={[6, 6, 1]}
         />
-        <Lightformer form="rect" intensity={0.6} color="#8FB4D9" position={[0, 1.2, 3]} scale={[3, 2, 1]} />
+        {/* 正面偏左冷補光：金屬藍調反射，與暖側拉開冷暖層次 */}
+        <Lightformer form="rect" intensity={0.5} color="#7FA8D6" position={[-2.6, 1.4, 3]} rotation-y={-0.5} scale={[3, 4, 1]} />
+        {/* 後右暖緣光：勾出輪廓的鎏金邊 */}
         <Lightformer
           form="rect"
-          intensity={3}
-          color="#FFE7B8"
-          position={[2.5, 1.8, -2.5]}
-          rotation-y={Math.PI * 0.75}
-          scale={[2, 3, 1]}
+          intensity={3.4}
+          color="#FFCE84"
+          position={[3, 1.9, -2.5]}
+          rotation-y={Math.PI * 0.72}
+          scale={[2, 4, 1]}
         />
+        {/* 低位環光：在腹部/下身彎面補一道圓弧反射，避免死黑 */}
+        <Lightformer form="ring" intensity={0.7} color="#C98A3A" position={[0, 0.5, 2.6]} scale={[2.2, 2.2, 1]} />
       </Environment>
 
       {/* 金塵與墨霧氛圍 */}
